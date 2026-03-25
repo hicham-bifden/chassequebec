@@ -26,3 +26,10 @@ export interface CartItem {
   quantity: number;
   checked: boolean;
 }
+
+export interface DealFilters {
+  storeId: string;
+  categoryId: string;
+  sortBy: string;
+  search?: string;
+}

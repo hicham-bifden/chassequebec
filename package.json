@@ -1,0 +1,9 @@
+{
+  "name": "chassequebec",
+  "scripts": {
+    "dev:api": "cd backend/api && npm run dev",
+    "dev:frontend": "cd app && npm run dev",
+    "dev:scraper": "cd backend/scraper && python main.py --once",
+    "setup:db": "psql chassequebec < backend/database/schema.sql"
+  }
+}

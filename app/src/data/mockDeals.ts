@@ -1,6 +1,6 @@
 import type { Deal } from '../types';
 
-export const mockDeals: Deal[] = [
+export const MOCK_DEALS: Deal[] = [
   {
     id: '1',
     name: 'Fraises du Québec',
@@ -63,7 +63,7 @@ export const mockDeals: Deal[] = [
   },
   {
     id: '7',
-    name: 'Jus d\'orange Tropicana',
+    name: "Jus d'orange Tropicana",
     store: 'Maxi',
     category: 'Boissons',
     regularPrice: 6.99,
@@ -122,3 +122,6 @@ export const mockDeals: Deal[] = [
     validUntil: '2026-03-28',
   },
 ];
+
+// Alias for backward compatibility
+export const mockDeals = MOCK_DEALS;
