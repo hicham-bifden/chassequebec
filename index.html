@@ -1,0 +1,545 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="ChasseQuébec — Comparez les circulaires de toutes les épiceries québécoises. IGA, Metro, Maxi, Provigo et plus. Économisez jusqu'à 2 400$/an." />
+  <meta name="keywords" content="circulaires québec, épicerie pas cher, IGA Metro Maxi, économies québec, liste d'achats" />
+  <title>ChasseQuébec — Chassez les meilleures aubaines</title>
+
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            chasse: {
+              50:  '#fff7ed',
+              100: '#ffedd5',
+              200: '#fed7aa',
+              400: '#fb923c',
+              500: '#f97316',
+              600: '#ea580c',
+              700: '#c2410c',
+              800: '#9a3412',
+              900: '#7c2d12',
+            },
+            leaf: {
+              500: '#16a34a',
+              600: '#15803d',
+              700: '#166534',
+            }
+          },
+          fontFamily: {
+            sans: ['Inter', 'system-ui', 'sans-serif'],
+          },
+          animation: {
+            'fade-up':    'fadeUp 0.6s ease forwards',
+            'fade-in':    'fadeIn 0.5s ease forwards',
+            'slide-left': 'slideLeft 0.6s ease forwards',
+            'pulse-soft': 'pulseSoft 2s ease-in-out infinite',
+            'bounce-tag': 'bounceTag 1s ease infinite',
+          },
+          keyframes: {
+            fadeUp:    { '0%': { opacity:'0', transform:'translateY(30px)' }, '100%': { opacity:'1', transform:'translateY(0)' } },
+            fadeIn:    { '0%': { opacity:'0' }, '100%': { opacity:'1' } },
+            slideLeft: { '0%': { opacity:'0', transform:'translateX(40px)' }, '100%': { opacity:'1', transform:'translateX(0)' } },
+            pulseSoft: { '0%,100%': { transform:'scale(1)' }, '50%': { transform:'scale(1.04)' } },
+            bounceTag: { '0%,100%': { transform:'translateY(0)' }, '50%': { transform:'translateY(-4px)' } },
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+
+  <!-- GSAP CDN -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js" defer></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js" defer></script>
+
+  <link rel="stylesheet" href="assets/css/custom.css" />
+</head>
+
+<body class="font-sans bg-white text-gray-900 antialiased overflow-x-hidden">
+
+  <!-- ░░ NAVBAR ░░ -->
+  <header id="navbar" class="fixed top-0 left-0 right-0 z-50 transition-all duration-300">
+    <nav class="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
+
+      <!-- Logo -->
+      <a href="#" class="flex items-center gap-2 group">
+        <div class="w-8 h-8 bg-chasse-500 rounded-lg flex items-center justify-center group-hover:bg-chasse-600 transition-colors">
+          <svg class="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
+            <path d="M3 1a1 1 0 000 2h1.22l.305 1.222a.997.997 0 00.01.042l1.358 5.43-.893.892C3.74 11.846 4.632 14 6.414 14H15a1 1 0 000-2H6.414l1-1H14a1 1 0 00.894-.553l3-6A1 1 0 0017 3H6.28l-.31-1.243A1 1 0 005 1H3z"/>
+          </svg>
+        </div>
+        <span class="text-lg font-bold text-gray-900">Chasse<span class="text-chasse-500">Québec</span></span>
+      </a>
+
+      <!-- Desktop links -->
+      <div class="hidden md:flex items-center gap-8">
+        <a href="#features"  class="nav-link text-sm text-gray-600 hover:text-chasse-500 transition-colors relative">Fonctions</a>
+        <a href="#magasins"  class="nav-link text-sm text-gray-600 hover:text-chasse-500 transition-colors relative">Magasins</a>
+        <a href="#economies" class="nav-link text-sm text-gray-600 hover:text-chasse-500 transition-colors relative">Économies</a>
+        <a href="#faq"       class="nav-link text-sm text-gray-600 hover:text-chasse-500 transition-colors relative">FAQ</a>
+      </div>
+
+      <div class="hidden md:flex items-center gap-3">
+        <a href="#" class="text-sm text-gray-600 hover:text-chasse-500 transition-colors">Connexion</a>
+        <a href="#cta" class="bg-chasse-500 text-white text-sm px-5 py-2 rounded-lg hover:bg-chasse-600 transition-all hover:scale-105 font-medium">
+          Commencer gratuitement
+        </a>
+      </div>
+
+      <!-- Hamburger mobile -->
+      <button id="menu-btn" class="md:hidden p-2 rounded-lg hover:bg-gray-100 transition-colors" aria-label="Menu">
+        <div id="ham-lines" class="space-y-1.5">
+          <span class="block w-5 h-0.5 bg-gray-700 transition-all duration-300"></span>
+          <span class="block w-5 h-0.5 bg-gray-700 transition-all duration-300"></span>
+          <span class="block w-3 h-0.5 bg-gray-700 transition-all duration-300"></span>
+        </div>
+      </button>
+    </nav>
+
+    <!-- Mobile menu -->
+    <div id="mobile-menu" class="hidden md:hidden bg-white border-t border-gray-100 px-4 py-5 space-y-4 shadow-lg">
+      <a href="#features"  class="block text-sm text-gray-700 hover:text-chasse-500 transition-colors">Fonctions</a>
+      <a href="#magasins"  class="block text-sm text-gray-700 hover:text-chasse-500 transition-colors">Magasins</a>
+      <a href="#economies" class="block text-sm text-gray-700 hover:text-chasse-500 transition-colors">Économies</a>
+      <a href="#faq"       class="block text-sm text-gray-700 hover:text-chasse-500 transition-colors">FAQ</a>
+      <a href="#cta" class="block bg-chasse-500 text-white text-sm px-4 py-2.5 rounded-lg text-center font-medium hover:bg-chasse-600 transition-colors">
+        Commencer gratuitement
+      </a>
+    </div>
+  </header>
+
+  <main>
+
+
+    <!-- ░░ HERO ░░ -->
+    <section class="pt-28 pb-20 px-4 relative overflow-hidden">
+
+      <!-- Background décoratif -->
+      <div class="absolute inset-0 -z-10">
+        <div class="absolute top-0 right-0 w-96 h-96 bg-chasse-50 rounded-full blur-3xl opacity-60 translate-x-1/3 -translate-y-1/3"></div>
+        <div class="absolute bottom-0 left-0 w-72 h-72 bg-leaf-500/5 rounded-full blur-3xl"></div>
+      </div>
+
+      <div class="max-w-6xl mx-auto">
+        <div class="grid lg:grid-cols-2 gap-12 items-center">
+
+          <!-- Texte hero -->
+          <div class="hero-text">
+            <div class="inline-flex items-center gap-2 bg-chasse-50 text-chasse-700 text-xs font-medium px-3 py-1.5 rounded-full mb-6 border border-chasse-100">
+              <span class="w-1.5 h-1.5 rounded-full bg-chasse-500 animate-pulse-soft inline-block"></span>
+              Nouvelles circulaires chaque mercredi
+            </div>
+
+
+                <div class="bg-red-100 sm:text-5xl md:bg-blue-100 text-5xl lg:bg-gray-100
+                hover:bg-chasse-200  "> Hicham bifden </div>
+
+  <button class="bg-blue-500 hover:bg-blue-700 transition duration-100 ease-in-out">
+  Bouton animé
+</button>
+
+
+
+
+            <h1 class="text-4xl md:text-5xl lg:text-6xl font-extrabold text-gray-900 leading-tight mb-6">
+              Arrêtez de<br />
+              <span class="text-chasse-500 relative">
+                payer trop cher
+                <svg class="absolute -bottom-2 left-0 w-full" viewBox="0 0 300 12" fill="none">
+                  <path d="M2 8 Q75 2 150 8 Q225 14 298 8" stroke="#f97316" stroke-width="3" stroke-linecap="round" fill="none"/>
+                </svg>
+              </span><br />
+              votre épicerie.
+            </h1>
+
+            <p class="text-lg text-gray-500 mb-8 leading-relaxed max-w-lg">
+              ChasseQuébec compare automatiquement les circulaires de <strong class="text-gray-700">IGA, Metro, Maxi, Provigo, Super C</strong> et plus — chaque semaine, près de chez vous.
+            </p>
+
+            <div class="flex flex-col sm:flex-row gap-3 mb-8">
+              <a href="#cta"
+                class="btn-primary inline-flex items-center justify-center gap-2 bg-chasse-500 text-white px-7 py-3.5 rounded-xl font-semibold hover:bg-chasse-600 transition-all hover:scale-105 hover:shadow-lg hover:shadow-chasse-200">
+                <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path d="M3 1a1 1 0 000 2h1.22l.305 1.222a.997.997 0 00.01.042l1.358 5.43-.893.892C3.74 11.846 4.632 14 6.414 14H15a1 1 0 000-2H6.414l1-1H14a1 1 0 00.894-.553l3-6A1 1 0 0017 3H6.28l-.31-1.243A1 1 0 005 1H3z"/></svg>
+                Trouver mes aubaines
+              </a>
+              <a href="#features"
+                class="inline-flex items-center justify-center gap-2 border border-gray-200 text-gray-700 px-7 py-3.5 rounded-xl font-medium hover:bg-gray-50 transition-all">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                Voir comment ça marche
+              </a>
+            </div>
+
+            <!-- Social proof -->
+            <div class="flex items-center gap-4 text-sm text-gray-500">
+              <div class="flex -space-x-2">
+                <div class="avatar-circle bg-chasse-200 text-chasse-800">ML</div>
+                <div class="avatar-circle bg-leaf-500/20 text-leaf-700">SB</div>
+                <div class="avatar-circle bg-blue-100 text-blue-800">KT</div>
+                <div class="avatar-circle bg-purple-100 text-purple-800">+</div>
+              </div>
+              <span><strong class="text-gray-700">2 847</strong> Québécois économisent déjà</span>
+            </div>
+          </div>
+
+          <!-- Dashboard mockup -->
+          <div class="hero-mockup hidden lg:block">
+            <div class="relative">
+              <!-- Carte principale -->
+              <div class="mockup-card bg-white border border-gray-100 rounded-2xl p-5 shadow-xl">
+
+                <!-- Barre du haut -->
+                <div class="flex items-center justify-between mb-4">
+                  <div>
+                    <div class="text-xs text-gray-400 mb-0.5">Cette semaine · Montréal</div>
+                    <div class="text-base font-semibold text-gray-900">Meilleures aubaines</div>
+                  </div>
+                  <div class="bg-leaf-500/10 text-leaf-700 text-xs font-medium px-3 py-1 rounded-full">
+                    Màj mercredi 6h
+                  </div>
+                </div>
+
+                <!-- Items -->
+                <div class="space-y-2 mb-4">
+                  <div class="deal-row flex items-center justify-between bg-gray-50 rounded-xl px-3 py-2.5">
+                    <div class="flex items-center gap-3">
+                      <div class="w-8 h-8 bg-orange-100 rounded-lg flex items-center justify-center text-base">🥩</div>
+                      <div>
+                        <div class="text-sm font-medium text-gray-800">Bœuf haché extra-maigre</div>
+                        <div class="text-xs text-gray-400">IGA · 500g</div>
+                      </div>
+                    </div>
+                    <div class="text-right">
+                      <div class="text-sm font-bold text-chasse-600">4,99 $</div>
+                      <div class="text-xs text-gray-400 line-through">7,49 $</div>
+                    </div>
+                  </div>
+                  <div class="deal-row flex items-center justify-between bg-gray-50 rounded-xl px-3 py-2.5">
+                    <div class="flex items-center gap-3">
+                      <div class="w-8 h-8 bg-yellow-100 rounded-lg flex items-center justify-center text-base">🍌</div>
+                      <div>
+                        <div class="text-sm font-medium text-gray-800">Bananes biologiques</div>
+                        <div class="text-xs text-gray-400">Metro · 1 kg</div>
+                      </div>
+                    </div>
+                    <div class="text-right">
+                      <div class="text-sm font-bold text-chasse-600">1,29 $</div>
+                      <div class="text-xs text-gray-400 line-through">2,19 $</div>
+                    </div>
+                  </div>
+                  <div class="deal-row flex items-center justify-between bg-gray-50 rounded-xl px-3 py-2.5">
+                    <div class="flex items-center gap-3">
+                      <div class="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center text-base">🥛</div>
+                      <div>
+                        <div class="text-sm font-medium text-gray-800">Lait 2% Natrel 2L</div>
+                        <div class="text-xs text-gray-400">Maxi · 2L</div>
+                      </div>
+                    </div>
+                    <div class="text-right">
+                      <div class="text-sm font-bold text-chasse-600">3,49 $</div>
+                      <div class="text-xs text-gray-400 line-through">4,99 $</div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Total économies -->
+                <div class="bg-leaf-500/10 rounded-xl px-4 py-3 flex items-center justify-between">
+                  <span class="text-sm text-leaf-700 font-medium">Économies cette semaine</span>
+                  <span class="text-xl font-bold text-leaf-600">47,30 $</span>
+                </div>
+              </div>
+
+              <!-- Badge flottant -->
+              <div class="absolute -top-4 -right-4 bg-chasse-500 text-white text-xs font-bold px-3 py-2 rounded-xl shadow-lg animate-bounce-tag">
+                -40% en moyenne
+              </div>
+
+              <!-- Points Optimum flottant -->
+              <div class="absolute -bottom-4 -left-4 bg-white border border-gray-100 rounded-xl shadow-lg px-3 py-2 flex items-center gap-2">
+                <div class="w-6 h-6 bg-red-500 rounded-full flex items-center justify-center">
+                  <span class="text-white text-xs font-bold">O</span>
+                </div>
+                <div>
+                  <div class="text-xs font-semibold text-gray-800">+320 pts Optimum</div>
+                  <div class="text-xs text-gray-400">calculés automatiquement</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- Vague décorative bas -->
+      <div class="absolute bottom-0 left-0 right-0 -z-10">
+        <svg viewBox="0 0 1440 60" fill="none" class="w-full">
+          <path d="M0 60L60 50C120 40 240 20 360 15C480 10 600 20 720 25C840 30 960 30 1080 25C1200 20 1320 10 1380 5L1440 0V60H0Z" fill="#f9fafb"/>
+        </svg>
+      </div>
+    </section>
+
+    <!-- ░░ LOGOS MAGASINS ░░ -->
+    <section id="magasins" class="bg-gray-50 py-14 px-4">
+      <div class="max-w-5xl mx-auto text-center">
+        <p class="text-sm text-gray-400 mb-8 font-medium tracking-wide uppercase">Circulaires disponibles dès le lancement</p>
+        <div class="logos-row flex flex-wrap justify-center items-center gap-6 md:gap-10">
+          <div class="store-logo">IGA</div>
+          <div class="store-logo">Metro</div>
+          <div class="store-logo">Maxi</div>
+          <div class="store-logo">Provigo</div>
+          <div class="store-logo">Super C</div>
+          <div class="store-logo">Jean Coutu</div>
+          <div class="store-logo">Canadian Tire</div>
+          <div class="store-logo">RONA</div>
+          <div class="store-logo">Dollarama</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ░░ FEATURES ░░ -->
+    <section id="features" class="py-24 px-4">
+      <div class="max-w-6xl mx-auto">
+
+        <div class="text-center mb-16 reveal">
+          <span class="inline-block bg-chasse-50 text-chasse-700 text-xs font-medium px-3 py-1 rounded-full mb-4 border border-chasse-100">
+            Fonctionnalités
+          </span>
+          <h2 class="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+            Tout ce qu'il faut pour<br />ne plus jamais payer trop cher
+          </h2>
+          <p class="text-gray-500 max-w-xl mx-auto">Conçu par et pour les Québécois. Pas un clone américain traduit.</p>
+        </div>
+
+        <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+
+          <article class="feature-card reveal group bg-white border border-gray-100 rounded-2xl p-6 hover:border-chasse-200 hover:shadow-lg transition-all duration-300">
+            <div class="w-12 h-12 bg-chasse-50 rounded-xl flex items-center justify-center mb-4 group-hover:bg-chasse-100 transition-colors">
+              <svg class="w-6 h-6 text-chasse-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+            </div>
+            <h3 class="font-semibold text-gray-900 mb-2">Circulaires automatiques</h3>
+            <p class="text-sm text-gray-500 leading-relaxed">Toutes les circulaires québécoises en un seul endroit. Mise à jour chaque mercredi à 6h du matin, sans aucune action de votre part.</p>
+          </article>
+
+          <article class="feature-card reveal group bg-white border border-gray-100 rounded-2xl p-6 hover:border-chasse-200 hover:shadow-lg transition-all duration-300">
+            <div class="w-12 h-12 bg-green-50 rounded-xl flex items-center justify-center mb-4 group-hover:bg-green-100 transition-colors">
+              <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 6l3 1m0 0l-3 9a5.002 5.002 0 006.001 0M6 7l3 9M6 7l6-2m6 2l3-1m-3 1l-3 9a5.002 5.002 0 006.001 0M18 7l3 9m-3-9l-6-2m0-2v2m0 16V5m0 16H9m3 0h3"/></svg>
+            </div>
+            <h3 class="font-semibold text-gray-900 mb-2">Comparateur de prix</h3>
+            <p class="text-sm text-gray-500 leading-relaxed">Cherchez "poulet" et voyez instantanément le prix au 100g dans les 6 épiceries autour de vous. Historique sur 8 semaines pour détecter les vraies soldes.</p>
+          </article>
+
+          <article class="feature-card reveal group bg-white border border-gray-100 rounded-2xl p-6 hover:border-chasse-200 hover:shadow-lg transition-all duration-300">
+            <div class="w-12 h-12 bg-blue-50 rounded-xl flex items-center justify-center mb-4 group-hover:bg-blue-100 transition-colors">
+              <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+            </div>
+            <h3 class="font-semibold text-gray-900 mb-2">Liste d'achats optimisée</h3>
+            <p class="text-sm text-gray-500 leading-relaxed">Ajoutez vos items, l'app répartit vos achats entre 2-3 magasins pour économiser le maximum. Calcul en temps réel de vos économies.</p>
+          </article>
+
+          <article class="feature-card reveal group bg-white border border-gray-100 rounded-2xl p-6 hover:border-chasse-200 hover:shadow-lg transition-all duration-300">
+            <div class="w-12 h-12 bg-red-50 rounded-xl flex items-center justify-center mb-4 group-hover:bg-red-100 transition-colors">
+              <svg class="w-6 h-6 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 8v13m0-13V6a2 2 0 112 2h-2zm0 0V5.5A2.5 2.5 0 109.5 8H12zm-7 4h14M5 12a2 2 0 110-4h14a2 2 0 110 4M5 12v7a2 2 0 002 2h10a2 2 0 002-2v-7"/></svg>
+            </div>
+            <h3 class="font-semibold text-gray-900 mb-2">Points fidélité intégrés</h3>
+            <p class="text-sm text-gray-500 leading-relaxed">Connectez vos cartes Optimum, Scene+ et Air Miles. Le vrai prix après points est calculé automatiquement pour chaque offre.</p>
+          </article>
+
+          <article class="feature-card reveal group bg-white border border-gray-100 rounded-2xl p-6 hover:border-chasse-200 hover:shadow-lg transition-all duration-300">
+            <div class="w-12 h-12 bg-purple-50 rounded-xl flex items-center justify-center mb-4 group-hover:bg-purple-100 transition-colors">
+              <svg class="w-6 h-6 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
+            </div>
+            <h3 class="font-semibold text-gray-900 mb-2">Alertes personnalisées</h3>
+            <p class="text-sm text-gray-500 leading-relaxed">Définissez vos produits favoris. Chaque mercredi matin, recevez une notification si l'un de vos items est en spécial quelque part.</p>
+          </article>
+
+          <article class="feature-card reveal group bg-white border border-gray-100 rounded-2xl p-6 hover:border-chasse-200 hover:shadow-lg transition-all duration-300">
+            <div class="w-12 h-12 bg-yellow-50 rounded-xl flex items-center justify-center mb-4 group-hover:bg-yellow-100 transition-colors">
+              <svg class="w-6 h-6 text-yellow-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"/></svg>
+            </div>
+            <h3 class="font-semibold text-gray-900 mb-2">Localisé par quartier</h3>
+            <p class="text-sm text-gray-500 leading-relaxed">Voir uniquement les magasins dans votre rayon. Les prix varient entre Montréal, Québec et les régions — on en tient compte.</p>
+          </article>
+
+        </div>
+      </div>
+    </section>
+
+    <!-- ░░ COMPTEUR ÉCONOMIES ░░ -->
+    <section id="economies" class="bg-gray-900 py-24 px-4 relative overflow-hidden">
+
+      <div class="absolute inset-0 -z-0">
+        <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-chasse-500/10 rounded-full blur-3xl"></div>
+      </div>
+
+      <div class="max-w-5xl mx-auto relative z-10">
+        <div class="text-center mb-16 reveal">
+          <h2 class="text-3xl md:text-4xl font-bold text-white mb-4">
+            Combien allez-vous économiser ?
+          </h2>
+          <p class="text-gray-400">Basé sur les habitudes moyennes d'une famille québécoise</p>
+        </div>
+
+        <div class="grid md:grid-cols-3 gap-8 text-center">
+          <div class="reveal stat-counter">
+            <div class="text-5xl font-extrabold text-chasse-400 mb-2" data-target="2400">0</div>
+            <div class="text-gray-400 text-sm">dollars économisés par an</div>
+            <div class="text-gray-600 text-xs mt-1">par famille de 4 personnes</div>
+          </div>
+          <div class="reveal stat-counter">
+            <div class="text-5xl font-extrabold text-chasse-400 mb-2" data-target="9">0</div>
+            <div class="text-gray-400 text-sm">épiceries couvertes</div>
+            <div class="text-gray-600 text-xs mt-1">dès le lancement</div>
+          </div>
+          <div class="reveal stat-counter">
+            <div class="text-5xl font-extrabold text-chasse-400 mb-2" data-target="40">0</div>
+            <div class="text-gray-400 text-sm">% d'économies en moyenne</div>
+            <div class="text-gray-600 text-xs mt-1">sur les articles en solde</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ░░ FAQ ░░ -->
+    <section id="faq" class="py-24 px-4">
+      <div class="max-w-2xl mx-auto">
+
+        <div class="text-center mb-16 reveal">
+          <h2 class="text-3xl font-bold text-gray-900 mb-4">Questions fréquentes</h2>
+          <p class="text-gray-500">Tout ce que vous voulez savoir avant de commencer.</p>
+        </div>
+
+        <div class="faq-list space-y-3">
+
+          <div class="faq-item border border-gray-100 rounded-xl overflow-hidden">
+            <button class="faq-btn w-full flex items-center justify-between px-5 py-4 text-left hover:bg-gray-50 transition-colors">
+              <span class="text-sm font-medium text-gray-900">Est-ce vraiment gratuit ?</span>
+              <svg class="faq-icon w-4 h-4 text-gray-400 transition-transform duration-300 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+            </button>
+            <div class="faq-answer hidden px-5 pb-4 text-sm text-gray-500 leading-relaxed">
+              Oui, les fonctionnalités de base (circulaires, comparateur, liste d'achats) sont et resteront gratuites. Une version Pro avec alertes avancées et intégration des programmes de fidélité sera disponible à 2,99$/mois.
+            </div>
+          </div>
+
+          <div class="faq-item border border-gray-100 rounded-xl overflow-hidden">
+            <button class="faq-btn w-full flex items-center justify-between px-5 py-4 text-left hover:bg-gray-50 transition-colors">
+              <span class="text-sm font-medium text-gray-900">Quand les circulaires sont-elles mises à jour ?</span>
+              <svg class="faq-icon w-4 h-4 text-gray-400 transition-transform duration-300 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+            </button>
+            <div class="faq-answer hidden px-5 pb-4 text-sm text-gray-500 leading-relaxed">
+              Chaque mercredi entre 6h et 8h du matin, heure du Québec. Contrairement aux apps américaines qui font la mise à jour le jeudi, nous respectons le cycle québécois des circulaires.
+            </div>
+          </div>
+
+          <div class="faq-item border border-gray-100 rounded-xl overflow-hidden">
+            <button class="faq-btn w-full flex items-center justify-between px-5 py-4 text-left hover:bg-gray-50 transition-colors">
+              <span class="text-sm font-medium text-gray-900">Quelle différence avec Flipp ?</span>
+              <svg class="faq-icon w-4 h-4 text-gray-400 transition-transform duration-300 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+            </button>
+            <div class="faq-answer hidden px-5 pb-4 text-sm text-gray-500 leading-relaxed">
+              Flipp est une app américaine qui affiche les circulaires sans les comparer ni optimiser votre liste. ChasseQuébec compare les prix au 100g entre magasins, intègre vos points de fidélité québécois (Optimum, Scene+), et génère une liste d'achats répartie entre plusieurs magasins pour maximiser vos économies.
+            </div>
+          </div>
+
+          <div class="faq-item border border-gray-100 rounded-xl overflow-hidden">
+            <button class="faq-btn w-full flex items-center justify-between px-5 py-4 text-left hover:bg-gray-50 transition-colors">
+              <span class="text-sm font-medium text-gray-900">Une app mobile est-elle prévue ?</span>
+              <svg class="faq-icon w-4 h-4 text-gray-400 transition-transform duration-300 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+            </button>
+            <div class="faq-answer hidden px-5 pb-4 text-sm text-gray-500 leading-relaxed">
+              Oui ! Une app Android native (Kotlin) est en développement pour le printemps 2026, avec notifications push le mercredi matin et accès à votre liste en mode hors-ligne dans le magasin.
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </section>
+
+    <!-- ░░ CTA FINAL ░░ -->
+    <section id="cta" class="bg-chasse-500 py-24 px-4 relative overflow-hidden">
+      <div class="absolute inset-0 -z-0">
+        <div class="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full -translate-y-1/2 translate-x-1/4"></div>
+        <div class="absolute bottom-0 left-0 w-48 h-48 bg-white/5 rounded-full translate-y-1/3 -translate-x-1/4"></div>
+      </div>
+      <div class="max-w-xl mx-auto text-center relative z-10 reveal">
+        <h2 class="text-3xl md:text-4xl font-bold text-white mb-4">
+          Prêt à chasser les aubaines ?
+        </h2>
+        <p class="text-chasse-100 mb-10 text-lg">
+          Rejoignez les Québécois qui économisent déjà chaque semaine. Gratuit, sans carte de crédit.
+        </p>
+        <form id="signup-form" class="flex flex-col sm:flex-row gap-3 max-w-md mx-auto">
+          <input
+            type="email"
+            id="email-input"
+            placeholder="votre@email.com"
+            required
+            class="flex-1 bg-white/10 border border-white/20 text-white placeholder-chasse-200 rounded-xl px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-white/50 focus:bg-white/20 transition-all"
+          />
+          <button type="submit"
+            class="bg-white text-chasse-600 px-6 py-3 rounded-xl text-sm font-semibold hover:bg-chasse-50 transition-all hover:scale-105 whitespace-nowrap">
+            Démarrer gratuitement
+          </button>
+        </form>
+        <p id="signup-msg" class="text-chasse-100 text-sm mt-4 hidden">
+          Parfait ! On vous avertit dès le lancement.
+        </p>
+        <p class="text-chasse-200 text-xs mt-4">Aucune carte de crédit · 100% en français · Données hébergées au Québec</p>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ░░ FOOTER ░░ -->
+  <footer class="bg-gray-900 py-16 px-4">
+    <div class="max-w-6xl mx-auto">
+      <div class="grid md:grid-cols-4 gap-10 mb-12">
+        <div class="md:col-span-2">
+          <div class="flex items-center gap-2 mb-4">
+            <div class="w-7 h-7 bg-chasse-500 rounded-lg flex items-center justify-center">
+              <svg class="w-3.5 h-3.5 text-white" fill="currentColor" viewBox="0 0 20 20"><path d="M3 1a1 1 0 000 2h1.22l.305 1.222a.997.997 0 00.01.042l1.358 5.43-.893.892C3.74 11.846 4.632 14 6.414 14H15a1 1 0 000-2H6.414l1-1H14a1 1 0 00.894-.553l3-6A1 1 0 0017 3H6.28l-.31-1.243A1 1 0 005 1H3z"/></svg>
+            </div>
+            <span class="text-base font-bold text-white">Chasse<span class="text-chasse-400">Québec</span></span>
+          </div>
+          <p class="text-gray-400 text-sm leading-relaxed max-w-xs">
+            La plateforme québécoise pour comparer les circulaires et ne plus jamais payer trop cher votre épicerie.
+          </p>
+        </div>
+        <div>
+          <div class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-4">Produit</div>
+          <ul class="space-y-2.5 text-sm text-gray-400">
+            <li><a href="#features"  class="hover:text-white transition-colors">Fonctionnalités</a></li>
+            <li><a href="#magasins"  class="hover:text-white transition-colors">Magasins couverts</a></li>
+            <li><a href="#economies" class="hover:text-white transition-colors">Économies</a></li>
+            <li><a href="#"          class="hover:text-white transition-colors">App Android (bientôt)</a></li>
+          </ul>
+        </div>
+        <div>
+          <div class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-4">Projet</div>
+          <ul class="space-y-2.5 text-sm text-gray-400">
+            <li><a href="https://github.com/TON-USERNAME/chassequebec" class="hover:text-white transition-colors">GitHub</a></li>
+            <li><a href="#" class="hover:text-white transition-colors">Roadmap publique</a></li>
+            <li><a href="#faq" class="hover:text-white transition-colors">FAQ</a></li>
+          </ul>
+        </div>
+      </div>
+      <div class="border-t border-gray-800 pt-8 flex flex-col md:flex-row justify-between items-center gap-4">
+        <div class="text-sm text-gray-500">© 2025 ChasseQuébec · MIT License · Fait au Québec</div>
+        <div class="flex gap-6 text-sm text-gray-500">
+          <a href="#" class="hover:text-white transition-colors">Confidentialité</a>
+          <a href="#" class="hover:text-white transition-colors">Conditions</a>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <script src="assets/js/main.js"></script>
+</body>
+</html>

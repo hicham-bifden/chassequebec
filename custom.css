@@ -1,0 +1,202 @@
+/* ============================================
+   ChasseQuébec — custom.css
+   Sprint 1 · Animations CSS + styles globaux
+   ============================================ */
+
+/* ── Scroll smooth global ── */
+html { scroll-behavior: smooth; }
+
+/* ── Navbar scroll effect (géré via JS + classe) ── */
+#navbar.scrolled {
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-bottom: 1px solid rgba(0,0,0,0.06);
+  box-shadow: 0 1px 20px rgba(0,0,0,0.05);
+}
+#navbar:not(.scrolled) {
+  background: transparent;
+}
+
+/* ── Nav links — underline animé ── */
+.nav-link::after {
+  content: '';
+  position: absolute;
+  bottom: -2px;
+  left: 0;
+  width: 0;
+  height: 2px;
+  background: #f97316;
+  border-radius: 2px;
+  transition: width 0.25s ease;
+}
+.nav-link:hover::after { width: 100%; }
+
+/* ── Avatars social proof ── */
+.avatar-circle {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: 2px solid white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+/* ── Store logos ── */
+.store-logo {
+  font-size: 13px;
+  font-weight: 700;
+  color: #9ca3af;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  transition: color 0.2s ease;
+  cursor: default;
+  padding: 6px 12px;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  background: white;
+}
+.store-logo:hover { color: #f97316; border-color: #fed7aa; }
+
+/* ── Reveal animation (Intersection Observer) ── */
+.reveal {
+  opacity: 0;
+  transform: translateY(28px);
+  transition: opacity 0.65s ease, transform 0.65s ease;
+}
+.reveal.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Délais en cascade pour les grilles ── */
+.feature-card:nth-child(1) { transition-delay: 0.0s; }
+.feature-card:nth-child(2) { transition-delay: 0.1s; }
+.feature-card:nth-child(3) { transition-delay: 0.2s; }
+.feature-card:nth-child(4) { transition-delay: 0.3s; }
+.feature-card:nth-child(5) { transition-delay: 0.4s; }
+.feature-card:nth-child(6) { transition-delay: 0.5s; }
+
+/* ── Deal rows — animation entrée ── */
+.deal-row {
+  animation: slideInRow 0.4s ease forwards;
+  opacity: 0;
+}
+.deal-row:nth-child(1) { animation-delay: 0.2s; }
+.deal-row:nth-child(2) { animation-delay: 0.35s; }
+.deal-row:nth-child(3) { animation-delay: 0.5s; }
+
+@keyframes slideInRow {
+  from { opacity: 0; transform: translateX(-12px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+/* ── Mockup card — entrée hero ── */
+.mockup-card {
+  animation: heroCardIn 0.8s ease 0.3s both;
+}
+@keyframes heroCardIn {
+  from { opacity: 0; transform: translateY(24px) rotate(-1deg); }
+  to   { opacity: 1; transform: translateY(0) rotate(0deg); }
+}
+
+/* ── Hero texte — entrée ── */
+.hero-text > * {
+  opacity: 0;
+  animation: heroTextIn 0.6s ease forwards;
+}
+.hero-text > *:nth-child(1) { animation-delay: 0.1s; }
+.hero-text > *:nth-child(2) { animation-delay: 0.2s; }
+.hero-text > *:nth-child(3) { animation-delay: 0.3s; }
+.hero-text > *:nth-child(4) { animation-delay: 0.4s; }
+.hero-text > *:nth-child(5) { animation-delay: 0.5s; }
+@keyframes heroTextIn {
+  from { opacity: 0; transform: translateY(20px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ── Logos row — animation décalée ── */
+.store-logo {
+  opacity: 0;
+  animation: logoFadeIn 0.4s ease forwards;
+}
+.logos-row .store-logo:nth-child(1) { animation-delay: 0.1s; }
+.logos-row .store-logo:nth-child(2) { animation-delay: 0.15s; }
+.logos-row .store-logo:nth-child(3) { animation-delay: 0.2s; }
+.logos-row .store-logo:nth-child(4) { animation-delay: 0.25s; }
+.logos-row .store-logo:nth-child(5) { animation-delay: 0.3s; }
+.logos-row .store-logo:nth-child(6) { animation-delay: 0.35s; }
+.logos-row .store-logo:nth-child(7) { animation-delay: 0.4s; }
+.logos-row .store-logo:nth-child(8) { animation-delay: 0.45s; }
+.logos-row .store-logo:nth-child(9) { animation-delay: 0.5s; }
+@keyframes logoFadeIn {
+  from { opacity: 0; transform: scale(0.9); }
+  to   { opacity: 1; transform: scale(1); }
+}
+
+/* ── Hamburger lines animation ── */
+#menu-btn.open #ham-lines span:nth-child(1) {
+  transform: rotate(45deg) translate(5px, 5px);
+}
+#menu-btn.open #ham-lines span:nth-child(2) {
+  opacity: 0;
+  transform: scaleX(0);
+}
+#menu-btn.open #ham-lines span:nth-child(3) {
+  transform: rotate(-45deg) translate(4px, -4px);
+  width: 20px;
+}
+
+/* ── FAQ accordion ── */
+.faq-answer {
+  overflow: hidden;
+  max-height: 0;
+  transition: max-height 0.35s ease, padding 0.25s ease;
+  display: block !important;
+  padding-bottom: 0 !important;
+}
+.faq-answer.open {
+  max-height: 200px;
+  padding-bottom: 1rem !important;
+}
+.faq-icon.open { transform: rotate(180deg); }
+
+/* ── Stat counters ── */
+.stat-counter {
+  transition-delay: var(--delay, 0s);
+}
+.stat-counter:nth-child(1) { --delay: 0s; }
+.stat-counter:nth-child(2) { --delay: 0.15s; }
+.stat-counter:nth-child(3) { --delay: 0.3s; }
+
+/* ── Bouton CTA principal — ripple ── */
+.btn-primary {
+  position: relative;
+  overflow: hidden;
+}
+.btn-primary::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: white;
+  opacity: 0;
+  border-radius: inherit;
+  transition: opacity 0.15s;
+}
+.btn-primary:active::after { opacity: 0.15; }
+
+/* ── Responsive fine-tuning ── */
+@media (max-width: 640px) {
+  h1 { font-size: 2.25rem !important; line-height: 1.2 !important; }
+  .hero-text { text-align: center; }
+  .hero-text .flex { justify-content: center; }
+}
+
+/* ── Selection couleur marque ── */
+::selection {
+  background: #fed7aa;
+  color: #7c2d12;
+}
