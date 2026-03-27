@@ -160,9 +160,11 @@ class SuperCScraper(BaseScraper):
         if len(unit) > 60:
             unit = unit[:60].rsplit(",", 1)[0].strip()
 
-        # Catégorie depuis le mapping Super C → notre format
+        # Catégorie : priorité à la détection par nom pour les cas spécifiques
         cat_fr = p.get("mainCategoryFr") or p.get("mainCategoryEn") or ""
-        category_id = CATEGORY_MAP.get(cat_fr) or self.detect_category(name)
+        cat_by_name = self.detect_category(name)
+        cat_by_api  = CATEGORY_MAP.get(cat_fr)
+        category_id = cat_by_name if cat_by_name != 'epicerie' else (cat_by_api or 'epicerie')
 
         # Date de validité depuis l'API (ou 7 jours par défaut)
         valid_until = self._parse_date(p.get("validTo")) or self.get_valid_until(7)

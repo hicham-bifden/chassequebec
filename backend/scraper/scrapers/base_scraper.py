@@ -31,22 +31,64 @@ class BaseScraper(ABC):
         return (datetime.now() + timedelta(days=days)).strftime("%Y-%m-%d")
 
     def detect_category(self, product_name: str) -> str:
-        """Détecte automatiquement la catégorie depuis le nom du produit."""
-        name = product_name.lower()
-        if any(w in name for w in ["bœuf", "poulet", "porc", "veau", "saumon", "crevette", "viande"]):
+        """Détecte automatiquement la catégorie depuis le nom du produit.
+        Retourne 'epicerie' par défaut si rien ne correspond.
+        """
+        # Normalise les accents pour simplifier la détection
+        import unicodedata
+        name = unicodedata.normalize('NFD', product_name.lower())
+        name = ''.join(c for c in name if unicodedata.category(c) != 'Mn')
+
+        if any(w in name for w in [
+            "boeuf", "poulet", "porc", "veau", "saumon", "crevette", "viande",
+            "steak", "cote", "roti", "bifteck", "agneau", "jambon", "bacon",
+            "dinde", "lapin", "canard", "poisson", "thon", "sardine", "morue",
+            "tilapia", "coquille", "homard", "pétoncle", "pétoncles",
+        ]):
             return "viande"
-        if any(w in name for w in ["pomme", "banane", "tomate", "laitue", "fraise", "légume", "fruit"]):
+
+        if any(w in name for w in [
+            "pomme", "banane", "tomate", "laitue", "fraise", "legume", "fruit",
+            "orange", "citron", "raisin", "ananas", "mangue", "avocat",
+            "brocoli", "carotte", "oignon", "poivron", "concombre", "celeri",
+            "epinard", "asperge", "courgette", "navet", "patate", "pomme de terre",
+            "bleuet", "framboise", "cerise", "peche", "poire", "kiwi",
+        ]):
             return "fruits-legumes"
-        if any(w in name for w in ["lait", "fromage", "yogourt", "crème", "beurre"]):
+
+        if any(w in name for w in [
+            "lait", "fromage", "yogourt", "creme", "beurre", "oeuf", "kefir",
+            "ricotta", "mozzarella", "cheddar", "parmesan", "cottage",
+        ]):
             return "produits-laitiers"
-        if any(w in name for w in ["pain", "baguette", "croissant", "bagel"]):
+
+        if any(w in name for w in [
+            "pain", "baguette", "croissant", "bagel", "muffin",
+            "brioche", "focaccia", "ciabatta",
+        ]):
             return "boulangerie"
-        if any(w in name for w in ["jus", "eau", "boisson", "café", "thé", "bière"]):
+
+        if any(w in name for w in [
+            "jus", "boisson", "cafe", "the ", "biere", "vin ", "cidre",
+            "limonade", "soda", "kombucha", "boisson vegetale",
+        ]):
             return "boissons"
-        if any(w in name for w in ["savon", "shampooing", "dentifrice", "déodorant"]):
+
+        # Hygiène & entretien — doit être AVANT la détection "epicerie"
+        if any(w in name for w in [
+            "lingette", "papier hygi", "essuie-tout", "essuie tout",
+            "couche", "tampon", "rasoir", "dentifrice", "shampoo",
+            "savon", "deodorant", "nettoyant", "detergent", "lessive",
+            "mouchoir", "papier mouchoir", "serviette hygienique",
+            "charmin", "cottonelle", "cashmere", "purex",
+            "desinfectant", "antiseptique", "lotion", "creme hydratante",
+            "gel douche", "mousse a raser", "apres-rasage",
+        ]):
             return "hygiene"
-        if any(w in name for w in ["surgelé", "pizza", "glace"]):
+
+        if any(w in name for w in ["surgele", "pizza", "glace", "frappe"]):
             return "surgeles"
+
         return "epicerie"
 
     @abstractmethod

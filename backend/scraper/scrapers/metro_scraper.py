@@ -153,7 +153,9 @@ class MetroScraper(BaseScraper):
             unit = unit[:80].rsplit(",", 1)[0].strip()
 
         cat_fr      = p.get("mainCategoryFr") or p.get("mainCategoryEn") or ""
-        category_id = CATEGORY_MAP.get(cat_fr) or self.detect_category(name)
+        cat_by_name = self.detect_category(name)
+        cat_by_api  = CATEGORY_MAP.get(cat_fr)
+        category_id = cat_by_name if cat_by_name != 'epicerie' else (cat_by_api or 'epicerie')
         image_url   = p.get("productImage") or ""
         end_date    = self._parse_date(p.get("validTo")) or valid_to or self.get_valid_until(7)
 

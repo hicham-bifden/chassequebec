@@ -129,10 +129,14 @@ class IGAScraper(BaseScraper):
         if len(unit) > 80:
             unit = unit[:80].rsplit(" ", 1)[0]
 
-        # Catégorie depuis Flipp → notre format
+        # Catégorie : la détection par nom est prioritaire pour les cas spécifiques
+        # (évite les erreurs de classification de l'API Flipp)
         cats = p.get("item_categories") or []
         cat_name = cats[0].get("name", "") if isinstance(cats, list) and cats else ""
-        category_id = CATEGORY_MAP.get(cat_name) or self.detect_category(name)
+        cat_by_name = self.detect_category(name)
+        cat_by_api  = CATEGORY_MAP.get(cat_name)
+        # Si le nom indique clairement une catégorie spécifique, on la préfère
+        category_id = cat_by_name if cat_by_name != 'epicerie' else (cat_by_api or 'epicerie')
 
         # Image et lien produit depuis l'API
         image_url   = p.get("image_url") or ""

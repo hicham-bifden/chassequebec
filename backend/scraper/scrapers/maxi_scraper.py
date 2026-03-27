@@ -129,7 +129,9 @@ class MaxiScraper(BaseScraper):
 
         cats = p.get("item_categories") or []
         cat_name = cats[0].get("name", "") if isinstance(cats, list) and cats else ""
-        category_id = CATEGORY_MAP.get(cat_name) or self.detect_category(name)
+        cat_by_name = self.detect_category(name)
+        cat_by_api  = CATEGORY_MAP.get(cat_name)
+        category_id = cat_by_name if cat_by_name != 'epicerie' else (cat_by_api or 'epicerie')
 
         image_url   = p.get("image_url") or ""
         product_url = p.get("item_web_url") or p.get("web_commission_url") or ""
