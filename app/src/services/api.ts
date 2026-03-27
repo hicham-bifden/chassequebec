@@ -45,3 +45,25 @@ export const fetchStats = async () => {
   const data = await response.json();
   return data.data;
 };
+
+// --- Types pour la comparaison ---
+
+export interface CompareStore {
+  store_id: string;
+  store_name: string;
+  color: string;
+  text_color: string;
+  best: ApiDeal & { saving_pct: number; saving_amount: number };
+  others: ApiDeal[];
+}
+
+export interface CompareResult {
+  query: string;
+  stores: CompareStore[];
+}
+
+export const fetchCompare = async (q: string): Promise<CompareResult> => {
+  const response = await fetch(`${API_URL}/api/deals/compare?q=${encodeURIComponent(q)}`);
+  if (!response.ok) throw new Error('Erreur API');
+  return response.json();
+};

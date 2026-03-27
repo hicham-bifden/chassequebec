@@ -1,10 +1,11 @@
 // ============================================================
 // routes/deals.js — Toutes les routes liées aux deals/circulaires
 //
-// Ce fichier définit 3 endpoints:
-//   GET /api/deals         → liste des deals avec filtres
-//   GET /api/deals/stats   → statistiques globales
-//   GET /api/deals/stores  → magasins avec nombre de deals
+// Ce fichier définit 4 endpoints:
+//   GET /api/deals           → liste des deals avec filtres
+//   GET /api/deals/compare   → comparaison du même produit entre magasins
+//   GET /api/deals/stats     → statistiques globales
+//   GET /api/deals/stores    → magasins avec nombre de deals
 // ============================================================
 
 import { Router } from 'express';
@@ -91,6 +92,96 @@ router.get('/', async (req, res) => {
     });
   } catch (err) {
     console.error('[API] /deals error:', err);
+    res.status(500).json({ success: false, error: 'Erreur serveur' });
+  }
+});
+
+// ----------------------------------------------------------
+// GET /api/deals/compare?q=poulet
+// Compare le même produit (par mot-clé) dans tous les magasins.
+//
+// Pour chaque magasin qui a un produit correspondant, on retourne:
+//   - le meilleur match (prix le plus bas)
+//   - tous les autres matches trouvés
+//
+// Exemple: GET /api/deals/compare?q=lait
+// → IGA: Lait Natrel 2L à 3.99$  ← le moins cher
+//   Metro: Lait Natrel 4L à 5.99$
+//   Maxi: Lait Natrel 2L à 4.29$
+// ----------------------------------------------------------
+router.get('/compare', async (req, res) => {
+  try {
+    const { q } = req.query;
+    if (!q || q.trim().length < 2) {
+      return res.status(400).json({ success: false, error: 'Paramètre q requis (min 2 caractères)' });
+    }
+
+    const search = `%${q.toLowerCase()}%`;
+
+    // Cherche tous les deals qui contiennent le mot-clé dans n'importe quel magasin
+    // ON PREND LES 3 MEILLEURS PAR MAGASIN (PARTITION BY store_id)
+    const result = await query(`
+      WITH ranked AS (
+        SELECT
+          d.id, d.name, d.brand, d.store_id,
+          d.regular_price, d.sale_price, d.unit,
+          d.valid_until, d.image_emoji,
+          s.name      AS store_name,
+          s.color     AS store_color,
+          s.text_color,
+          c.id        AS category_id,
+          c.label     AS category_label,
+          c.emoji,
+          ROUND(((d.regular_price - d.sale_price) / d.regular_price * 100)::numeric, 0) AS saving_pct,
+          (d.regular_price - d.sale_price) AS saving_amount,
+          -- ROW_NUMBER numérote les deals par magasin, du moins cher au plus cher
+          ROW_NUMBER() OVER (PARTITION BY d.store_id ORDER BY d.sale_price ASC) AS rank
+        FROM deals d
+        JOIN stores s ON d.store_id = s.id
+        JOIN categories c ON d.category_id = c.id
+        WHERE d.is_active = TRUE
+          AND LOWER(d.name) LIKE $1
+      )
+      SELECT * FROM ranked
+      WHERE rank <= 3
+      ORDER BY store_id, rank
+    `, [search]);
+
+    if (result.rows.length === 0) {
+      return res.json({ success: true, query: q, stores: [] });
+    }
+
+    // Regroupe les résultats par magasin
+    // Ex: { superc: { store_name: "Super C", best: {...}, others: [...] } }
+    const byStore = {};
+    for (const row of result.rows) {
+      if (!byStore[row.store_id]) {
+        byStore[row.store_id] = {
+          store_id:   row.store_id,
+          store_name: row.store_name,
+          color:      row.store_color,
+          text_color: row.text_color,
+          best:       null,   // deal le moins cher pour ce magasin
+          others:     [],     // autres deals trouvés dans ce magasin
+        };
+      }
+      const entry = byStore[row.store_id];
+      if (Number(row.rank) === 1) {
+        entry.best = row;     // rank=1 = le moins cher du magasin
+      } else {
+        entry.others.push(row);
+      }
+    }
+
+    // Trie les magasins par prix croissant (le moins cher en premier)
+    // On filtre les magasins sans best (ne devrait pas arriver, mais sécurité)
+    const stores = Object.values(byStore)
+      .filter(s => s.best !== null)
+      .sort((a, b) => Number(a.best.sale_price) - Number(b.best.sale_price));
+
+    res.json({ success: true, query: q, stores });
+  } catch (err) {
+    console.error('[API] /deals/compare error:', err);
     res.status(500).json({ success: false, error: 'Erreur serveur' });
   }
 });

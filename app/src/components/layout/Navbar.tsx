@@ -28,6 +28,16 @@ export default function Navbar() {
             Circulaires
           </NavLink>
           <NavLink
+            to="/comparer"
+            className={({ isActive }) =>
+              `px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                isActive ? 'bg-red-50 text-red-600' : 'text-gray-600 hover:bg-gray-100'
+              }`
+            }
+          >
+            Comparer
+          </NavLink>
+          <NavLink
             to="/ma-liste"
             className={({ isActive }) =>
               `relative px-4 py-2 rounded-lg text-sm font-medium transition-colors ${

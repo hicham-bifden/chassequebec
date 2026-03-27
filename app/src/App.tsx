@@ -3,6 +3,7 @@ import { CartProvider } from './context/CartContext';
 import Navbar from './components/layout/Navbar';
 import Dashboard from './pages/Dashboard';
 import MyList from './pages/MyList';
+import ComparePage from './pages/ComparePage';
 
 function App() {
   return (
@@ -14,6 +15,7 @@ function App() {
             <Routes>
               <Route path="/" element={<Dashboard />} />
               <Route path="/ma-liste" element={<MyList />} />
+              <Route path="/comparer" element={<ComparePage />} />
             </Routes>
           </main>
         </div>
