@@ -8,20 +8,26 @@ import schedule
 import time
 from dotenv import load_dotenv
 from scrapers.mock_scraper import MockScraper
+from scrapers.superc_scraper import SuperCScraper
 from db import save_deals, get_all_deals
 
 load_dotenv()
 
-STORES = ["iga", "metro", "maxi", "superc", "costco"]
+MOCK_STORES = ["iga", "metro", "maxi", "costco"]
+
+def get_scraper(store_id: str):
+    if store_id == "superc":
+        return SuperCScraper()
+    return MockScraper(store_id)
 
 def run_all_scrapers():
     """Lance tous les scrapers et sauvegarde en DB."""
     print("\n🔍 Démarrage du scraping ChasseQuébec...")
     total = 0
 
-    for store_id in STORES:
+    for store_id in MOCK_STORES + ["superc"]:
         try:
-            scraper = MockScraper(store_id)
+            scraper = get_scraper(store_id)
             deals = scraper.scrape()
             saved = save_deals(deals)
             total += saved

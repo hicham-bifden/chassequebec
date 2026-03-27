@@ -24,7 +24,26 @@ export const useDeals = (filters: DealFilters) => {
     } catch {
       // Fallback sur les données mock si l'API n'est pas dispo
       console.warn('[useDeals] API non disponible — utilisation des données mock');
-      setDeals(MOCK_DEALS as unknown as ApiDeal[]);
+      const mockAsApiDeals: ApiDeal[] = MOCK_DEALS.map(d => ({
+        id: d.id,
+        name: d.name,
+        store_id: d.store.toLowerCase().replace(' ', ''),
+        store_name: d.store,
+        color: '',
+        text_color: '',
+        category_id: d.category,
+        category_label: d.category,
+        emoji: '',
+        regular_price: d.regularPrice,
+        sale_price: d.salePrice,
+        unit: d.unit,
+        valid_until: d.validUntil,
+        image_emoji: '',
+        loyalty_points: 0,
+        saving_pct: Math.round(((d.regularPrice - d.salePrice) / d.regularPrice) * 100),
+        saving_amount: Math.round((d.regularPrice - d.salePrice) * 100) / 100,
+      }));
+      setDeals(mockAsApiDeals);
       setFromAPI(false);
       setError('API non disponible — données de démonstration affichées');
     } finally {
