@@ -10,6 +10,7 @@ import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import dealsRouter from './routes/deals.js';
+import chatRouter  from './routes/chat.js';
 
 // Charge les variables du fichier .env (DATABASE_URL, PORT, etc.)
 dotenv.config();
@@ -33,6 +34,7 @@ app.get('/api/health', (req, res) => {
 // Monte toutes les routes /api/deals/* sur le router dédié
 // Ex: GET /api/deals → deals.js gère la requête
 app.use('/api/deals', dealsRouter);
+app.use('/api/chat',  chatRouter);
 
 // Attrape toutes les routes inconnues et retourne une erreur 404
 app.use((req, res) => {

@@ -102,6 +102,7 @@ export default function Dashboard() {
         onSortChange={handleFilterChange(setSortBy)}
         search={search}
         onSearchChange={s => { setSearch(s); setLimit(PAGE_SIZE); }}
+        loadedDeals={apiDeals}
       />
 
       {/* Skeleton uniquement au chargement initial (aucun deal affiché) */}

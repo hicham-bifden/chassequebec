@@ -5,6 +5,7 @@ import Dashboard from './pages/Dashboard';
 import MyList from './pages/MyList';
 import ComparePage from './pages/ComparePage';
 import LiquidationPage from './pages/LiquidationPage';
+import ChatWidget from './components/ChatWidget';
 
 function App() {
   return (
@@ -12,6 +13,7 @@ function App() {
       <CartProvider>
         <div className="min-h-screen bg-gray-50">
           <Navbar />
+          <ChatWidget />
           <main>
             <Routes>
               <Route path="/" element={<Dashboard />} />

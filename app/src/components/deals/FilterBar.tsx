@@ -1,4 +1,7 @@
+import { useRef, useState } from 'react';
 import type { Store, Category } from '../../types';
+import type { ApiDeal } from '../../services/api';
+import { useFuzzySearch } from '../../hooks/useFuzzySearch';
 
 const STORES: Store[] = ['IGA', 'Maxi', 'Metro', 'Super C', 'Costco'];
 const CATEGORIES: Category[] = [
@@ -21,6 +24,7 @@ interface Props {
   onSortChange: (sort: 'discount' | 'price' | 'name') => void;
   search: string;
   onSearchChange: (s: string) => void;
+  loadedDeals?: ApiDeal[]; // pour les suggestions fuzzy
 }
 
 export default function FilterBar({
@@ -32,18 +36,50 @@ export default function FilterBar({
   onSortChange,
   search,
   onSearchChange,
+  loadedDeals = [],
 }: Props) {
+  const [focused, setFocused] = useState(false);
+  const inputRef = useRef<HTMLInputElement>(null);
+  const suggestions = useFuzzySearch(loadedDeals, search);
+  const showSuggestions = focused && suggestions.length > 0 && search.length >= 2;
+
   return (
     <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 mb-6 flex flex-wrap gap-4 items-center">
-      {/* Search */}
-      <div className="w-full">
+      {/* Search avec suggestions fuzzy */}
+      <div className="w-full relative">
         <input
+          ref={inputRef}
           type="text"
           value={search}
           onChange={e => onSearchChange(e.target.value)}
-          placeholder="Rechercher un produit…"
+          onFocus={() => setFocused(true)}
+          onBlur={() => setTimeout(() => setFocused(false), 150)}
+          placeholder="Rechercher un produit… (ex: poulet bbq, 2% lait)"
           className="w-full px-4 py-2 rounded-lg border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-red-300"
         />
+        {/* Dropdown suggestions fuzzy */}
+        {showSuggestions && (
+          <div className="absolute top-full left-0 right-0 z-20 mt-1 bg-white border border-gray-200 rounded-xl shadow-lg overflow-hidden">
+            {suggestions.map(deal => (
+              <button
+                key={deal.id}
+                onMouseDown={() => {
+                  onSearchChange(deal.name);
+                  setFocused(false);
+                }}
+                className="w-full text-left px-4 py-2.5 hover:bg-red-50 flex items-center justify-between gap-2 border-b border-gray-50 last:border-0"
+              >
+                <div className="min-w-0">
+                  <p className="text-sm text-gray-800 truncate font-medium">{deal.name}</p>
+                  <p className="text-xs text-gray-400">{deal.store_name} · {deal.category_label}</p>
+                </div>
+                <span className="text-sm font-bold text-red-600 shrink-0">
+                  {Number(deal.sale_price).toFixed(2)} $
+                </span>
+              </button>
+            ))}
+          </div>
+        )}
       </div>
 
       {/* Store filter */}
