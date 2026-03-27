@@ -181,6 +181,7 @@ class SuperCScraper(BaseScraper):
             "valid_until": valid_until,
             "image_emoji": EMOJI_MAP.get(category_id, "🛒"),
             "image_url":   image_url or "",
+            "product_url": "",   # Super C ne fournit pas d'URL produit via l'API
             "loyalty_points": 0,
         }
 
@@ -234,6 +235,7 @@ class SuperCScraper(BaseScraper):
                 "valid_until": valid_until,
                 "image_emoji": EMOJI_MAP.get(cat, "🛒"),
                 "image_url": "",
+                "product_url": "",
                 "loyalty_points": 0,
             }
             for name, reg, sale, unit, cat in products

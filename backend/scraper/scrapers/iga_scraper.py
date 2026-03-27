@@ -110,8 +110,14 @@ class IGAScraper(BaseScraper):
         if not name or name.lower().startswith("scene") or len(name) < 3:
             return None
 
-        sale_price = self._parse_price(p.get("price_text"))
+        # Gérer le format multi-unités: pre_price_text="2/" + price_text="17.00" → 8.50$
+        pre  = (p.get("pre_price_text") or "").strip()
+        sale_price = self._parse_price_with_pre(p.get("price_text"), pre)
         if sale_price is None:
+            return None
+
+        # Filtrer les prix "Prix Membre Scène+" — ce sont des prix de fidélité, pas circulaire
+        if "membre" in pre.lower() or "scène" in pre.lower() or "scene" in pre.lower():
             return None
 
         regular_price = self._parse_price(p.get("original_price"))
@@ -128,12 +134,13 @@ class IGAScraper(BaseScraper):
         cat_name = cats[0].get("name", "") if isinstance(cats, list) and cats else ""
         category_id = CATEGORY_MAP.get(cat_name) or self.detect_category(name)
 
-        # Image directement depuis l'API
-        image_url = p.get("image_url") or ""
+        # Image et lien produit depuis l'API
+        image_url   = p.get("image_url") or ""
+        product_url = p.get("item_web_url") or p.get("web_commission_url") or ""
 
         return {
             "name":          name.title(),   # "ASPERGES VERTES" → "Asperges Vertes"
-            "brand":         p.get("brand"),
+            "brand":         p.get("brand") or None,
             "store_id":      self.store_id,
             "category_id":   category_id,
             "regular_price": regular_price,
@@ -142,8 +149,23 @@ class IGAScraper(BaseScraper):
             "valid_until":   valid_to or self.get_valid_until(7),
             "image_emoji":   EMOJI_MAP.get(category_id, "🛒"),
             "image_url":     image_url,
+            "product_url":   product_url,
             "loyalty_points": 0,
         }
+
+    def _parse_price_with_pre(self, price_text, pre_text: str) -> float | None:
+        """Gère les formats multi-unités comme pre='2/' price='17.00' → 8.50$."""
+        price = self._parse_price(price_text)
+        if price is None:
+            return None
+        # Détecter "N/" dans pre_price_text (ex: "2/", "3/")
+        import re as _re
+        m = _re.match(r"^(\d+)/$", pre_text.strip())
+        if m:
+            qty = int(m.group(1))
+            if qty > 1:
+                return round(price / qty, 2)
+        return price
 
     def _parse_price(self, raw) -> float | None:
         if raw is None:

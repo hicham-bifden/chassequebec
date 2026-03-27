@@ -38,7 +38,7 @@ router.get('/', async (req, res) => {
       SELECT
         d.id, d.name, d.brand, d.store_id,
         d.regular_price, d.sale_price, d.unit,
-        d.valid_until, d.image_emoji, d.image_url, d.loyalty_points,
+        d.valid_until, d.image_emoji, d.image_url, d.product_url, d.loyalty_points,
         s.name as store_name, s.color, s.text_color,
         c.id as category_id, c.label as category_label, c.emoji,
         ROUND(((d.regular_price - d.sale_price) / d.regular_price * 100)::numeric, 0) as saving_pct,
@@ -125,7 +125,7 @@ router.get('/compare', async (req, res) => {
         SELECT
           d.id, d.name, d.brand, d.store_id,
           d.regular_price, d.sale_price, d.unit,
-          d.valid_until, d.image_emoji, d.image_url,
+          d.valid_until, d.image_emoji, d.image_url, d.product_url,
           s.name      AS store_name,
           s.color     AS store_color,
           s.text_color,

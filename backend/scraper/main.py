@@ -11,11 +11,12 @@ from scrapers.mock_scraper import MockScraper
 from scrapers.superc_scraper import SuperCScraper
 from scrapers.iga_scraper import IGAScraper
 from scrapers.maxi_scraper import MaxiScraper
+from scrapers.metro_scraper import MetroScraper
 from db import save_deals, get_all_deals
 
 load_dotenv()
 
-MOCK_STORES = ["metro", "costco"]
+MOCK_STORES = ["costco"]
 
 def get_scraper(store_id: str):
     if store_id == "superc":
@@ -24,6 +25,8 @@ def get_scraper(store_id: str):
         return IGAScraper()
     if store_id == "maxi":
         return MaxiScraper()
+    if store_id == "metro":
+        return MetroScraper()
     return MockScraper(store_id)
 
 def run_all_scrapers():
@@ -31,7 +34,7 @@ def run_all_scrapers():
     print("\n🔍 Démarrage du scraping ChasseQuébec...")
     total = 0
 
-    for store_id in MOCK_STORES + ["superc", "iga", "maxi"]:
+    for store_id in MOCK_STORES + ["superc", "iga", "maxi", "metro"]:
         try:
             scraper = get_scraper(store_id)
             deals = scraper.scrape()

@@ -18,6 +18,7 @@ export interface Deal {
   salePrice: number;
   unit: string;
   imageUrl?: string;
+  productUrl?: string;
   validUntil: string; // ISO date string
 }
 

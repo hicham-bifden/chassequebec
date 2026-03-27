@@ -38,6 +38,7 @@ function apiDealToDeal(d: ApiDeal): Deal {
     unit: d.unit ?? '',
     validUntil: d.valid_until ?? '',
     imageUrl: d.image_url || undefined,
+    productUrl: d.product_url || undefined,
   };
 }
 
@@ -45,12 +46,14 @@ export default function Dashboard() {
   const [selectedStore, setSelectedStore] = useState<Store | 'Tous'>('Tous');
   const [selectedCategory, setSelectedCategory] = useState<Category | 'Toutes'>('Toutes');
   const [sortBy, setSortBy] = useState<'discount' | 'price' | 'name'>('discount');
+  const [search, setSearch] = useState('');
 
   const filters: DealFilters = useMemo(() => ({
     storeId:    selectedStore === 'Tous' ? 'all' : (STORE_TO_ID[selectedStore] ?? 'all'),
     categoryId: selectedCategory === 'Toutes' ? 'all' : (CATEGORY_TO_ID[selectedCategory] ?? 'all'),
     sortBy:     SORT_MAP[sortBy] ?? 'pct',
-  }), [selectedStore, selectedCategory, sortBy]);
+    search:     search || undefined,
+  }), [selectedStore, selectedCategory, sortBy, search]);
 
   const { deals: apiDeals, loading, error, fromAPI } = useDeals(filters);
 
@@ -85,6 +88,8 @@ export default function Dashboard() {
         onCategoryChange={setSelectedCategory}
         sortBy={sortBy}
         onSortChange={setSortBy}
+        search={search}
+        onSearchChange={setSearch}
       />
 
       {loading ? (

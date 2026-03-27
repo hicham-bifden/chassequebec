@@ -17,6 +17,7 @@ export interface ApiDeal {
   valid_until: string;
   image_emoji: string;
   image_url: string;
+  product_url: string;
   loyalty_points: number;
   saving_pct: number;
   saving_amount: number;

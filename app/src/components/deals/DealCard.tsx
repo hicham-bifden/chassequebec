@@ -76,9 +76,22 @@ export default function DealCard({ deal }: Props) {
           </span>
         </div>
 
-        <p className="text-xs text-gray-400 mb-3">
-          Valide jusqu'au {new Date(deal.validUntil).toLocaleDateString('fr-CA')}
-        </p>
+        <div className="flex items-center justify-between mb-3">
+          <p className="text-xs text-gray-400">
+            Valide jusqu'au {new Date(deal.validUntil).toLocaleDateString('fr-CA')}
+          </p>
+          {deal.productUrl && (
+            <a
+              href={deal.productUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-xs text-blue-500 hover:text-blue-700 hover:underline"
+              onClick={e => e.stopPropagation()}
+            >
+              Voir ↗
+            </a>
+          )}
+        </div>
 
         {/* Price history toggle */}
         <button
