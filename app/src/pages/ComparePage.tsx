@@ -214,7 +214,7 @@ function StoreCard({ store, isCheapest, rank, inCart, onAddToCart }: StoreCardPr
         <p className="text-xs text-gray-400 mb-3">{best.unit}</p>
 
         {/* Prix */}
-        <div className="flex items-end justify-between mb-3">
+        <div className="flex items-end justify-between mb-1">
           <div>
             <span className={`text-2xl font-bold ${isCheapest ? 'text-green-600' : 'text-red-600'}`}>
               {salePrice.toFixed(2)} $
@@ -228,6 +228,14 @@ function StoreCard({ store, isCheapest, rank, inCart, onAddToCart }: StoreCardPr
             -{savingPct}%
           </span>
         </div>
+
+        {/* Prix unitaire pour comparaison réelle */}
+        {best.unit_price && (
+          <div className="mb-3 px-2 py-1 bg-blue-50 rounded-lg flex items-center gap-1">
+            <span className="text-xs font-bold text-blue-700">{Number(best.unit_price).toFixed(2)} $</span>
+            <span className="text-xs text-blue-500">{best.unit_label}</span>
+          </div>
+        )}
 
         {/* Autres produits trouvés dans ce magasin */}
         {others.length > 0 && (

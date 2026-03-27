@@ -37,23 +37,34 @@ function apiDealToDeal(d: ApiDeal): Deal {
     salePrice: Number(d.sale_price),
     unit: d.unit ?? '',
     validUntil: d.valid_until ?? '',
-    imageUrl: d.image_url || undefined,
-    productUrl: d.product_url || undefined,
+    imageUrl:    d.image_url    || undefined,
+    productUrl:  d.product_url  || undefined,
+    unitPrice:   d.unit_price   ?? undefined,
+    unitLabel:   d.unit_label   ?? undefined,
+    promoStatus: d.promo_status ?? undefined,
   };
 }
+
+const PAGE_SIZE = 100;
 
 export default function Dashboard() {
   const [selectedStore, setSelectedStore] = useState<Store | 'Tous'>('Tous');
   const [selectedCategory, setSelectedCategory] = useState<Category | 'Toutes'>('Toutes');
   const [sortBy, setSortBy] = useState<'discount' | 'price' | 'name'>('discount');
   const [search, setSearch] = useState('');
+  const [limit, setLimit] = useState(PAGE_SIZE);
+
+  // Reset limit when filters change
+  const handleFilterChange = <T,>(setter: React.Dispatch<React.SetStateAction<T>>) =>
+    (val: T) => { setter(val); setLimit(PAGE_SIZE); };
 
   const filters: DealFilters = useMemo(() => ({
     storeId:    selectedStore === 'Tous' ? 'all' : (STORE_TO_ID[selectedStore] ?? 'all'),
     categoryId: selectedCategory === 'Toutes' ? 'all' : (CATEGORY_TO_ID[selectedCategory] ?? 'all'),
     sortBy:     SORT_MAP[sortBy] ?? 'pct',
     search:     search || undefined,
-  }), [selectedStore, selectedCategory, sortBy, search]);
+    limit,
+  }), [selectedStore, selectedCategory, sortBy, search, limit]);
 
   const { deals: apiDeals, loading, error, fromAPI } = useDeals(filters);
 
@@ -84,12 +95,12 @@ export default function Dashboard() {
       <FilterBar
         selectedStore={selectedStore}
         selectedCategory={selectedCategory}
-        onStoreChange={setSelectedStore}
-        onCategoryChange={setSelectedCategory}
+        onStoreChange={handleFilterChange(setSelectedStore)}
+        onCategoryChange={handleFilterChange(setSelectedCategory)}
         sortBy={sortBy}
-        onSortChange={setSortBy}
+        onSortChange={handleFilterChange(setSortBy)}
         search={search}
-        onSearchChange={setSearch}
+        onSearchChange={s => { setSearch(s); setLimit(PAGE_SIZE); }}
       />
 
       {loading ? (
@@ -112,11 +123,25 @@ export default function Dashboard() {
           <p className="text-sm mt-2">Essayez d'autres filtres</p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-          {deals.map(deal => (
-            <DealCard key={deal.id} deal={deal} />
-          ))}
-        </div>
+        <>
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+            {deals.map(deal => (
+              <DealCard key={deal.id} deal={deal} />
+            ))}
+          </div>
+
+          {/* Bouton "Charger plus" si on a atteint la limite */}
+          {deals.length >= limit && (
+            <div className="mt-8 text-center">
+              <button
+                onClick={() => setLimit(l => l + PAGE_SIZE)}
+                className="px-8 py-3 bg-white border border-gray-200 rounded-xl text-sm font-semibold text-gray-600 hover:bg-gray-50 hover:border-gray-300 shadow-sm transition-all"
+              >
+                Charger {PAGE_SIZE} produits de plus
+              </button>
+            </div>
+          )}
+        </>
       )}
     </div>
   );

@@ -10,6 +10,7 @@
 
 import { Router } from 'express';
 import { query } from '../db.js';
+import { parseUnitPrice, calcPromoStatus } from '../utils/unitPrice.js';
 
 const router = Router();
 
@@ -28,12 +29,9 @@ const router = Router();
 // ----------------------------------------------------------
 router.get('/', async (req, res) => {
   try {
-    const { store, category, sort = 'savings', search, limit = 100 } = req.query;
+    const { store, category, sort = 'savings', search, limit = 200 } = req.query;
 
-    // Requête SQL de base — on joint 3 tables:
-    //   deals     → les produits en rabais
-    //   stores    → infos du magasin (nom, couleur)
-    //   categories → infos de la catégorie (label, emoji)
+    // Requête SQL avec historique de prix pour détection fausses promos
     let sql = `
       SELECT
         d.id, d.name, d.brand, d.store_id,
@@ -42,18 +40,29 @@ router.get('/', async (req, res) => {
         s.name as store_name, s.color, s.text_color,
         c.id as category_id, c.label as category_label, c.emoji,
         ROUND(((d.regular_price - d.sale_price) / d.regular_price * 100)::numeric, 0) as saving_pct,
-        (d.regular_price - d.sale_price) as saving_amount
+        (d.regular_price - d.sale_price) as saving_amount,
+        ph.avg_price    as hist_avg,
+        ph.max_price    as hist_max,
+        ph.data_points  as hist_points
       FROM deals d
       JOIN stores s ON d.store_id = s.id
       JOIN categories c ON d.category_id = c.id
+      -- Historique des 4 dernières semaines pour détecter les fausses promos
+      LEFT JOIN (
+        SELECT deal_name, store_id,
+               ROUND(AVG(price)::numeric, 2)   AS avg_price,
+               ROUND(MAX(price)::numeric, 2)   AS max_price,
+               COUNT(DISTINCT DATE(recorded_at)) AS data_points
+        FROM price_history
+        WHERE recorded_at >= NOW() - INTERVAL '28 days'
+        GROUP BY deal_name, store_id
+      ) ph ON LOWER(d.name) = LOWER(ph.deal_name) AND d.store_id = ph.store_id
       WHERE d.is_active = TRUE
     `;
 
-    // Tableau des valeurs des paramètres SQL (évite les injections)
     const params = [];
-    let paramCount = 1; // compteur pour $1, $2, $3...
+    let paramCount = 1;
 
-    // Ajoute les filtres dynamiquement si fournis dans l'URL
     if (store && store !== 'all') {
       sql += ` AND d.store_id = $${paramCount++}`;
       params.push(store);
@@ -63,33 +72,43 @@ router.get('/', async (req, res) => {
       params.push(category);
     }
     if (search) {
-      // LOWER() pour une recherche insensible à la casse
       sql += ` AND (LOWER(d.name) LIKE $${paramCount} OR LOWER(d.brand) LIKE $${paramCount})`;
       params.push(`%${search.toLowerCase()}%`);
       paramCount++;
     }
 
-    // Tri selon le paramètre ?sort=
     const orderMap = {
-      savings: 'saving_amount DESC',  // meilleure économie en $
-      price:   'd.sale_price ASC',    // prix le plus bas
-      pct:     'saving_pct DESC',     // meilleur % de rabais
-      name:    'd.name ASC',          // alphabétique
+      savings: 'saving_amount DESC',
+      price:   'd.sale_price ASC',
+      pct:     'saving_pct DESC',
+      name:    'd.name ASC',
     };
     sql += ` ORDER BY ${orderMap[sort] || orderMap.savings}`;
-
-    // Limite le nombre de résultats pour ne pas surcharger
     sql += ` LIMIT $${paramCount}`;
-    params.push(parseInt(limit));
+    params.push(Math.min(parseInt(limit) || 200, 1000));
 
     const result = await query(sql, params);
 
-    // Réponse JSON avec le tableau de deals
-    res.json({
-      success: true,
-      count: result.rows.length,
-      data: result.rows,
+    // Enrichir chaque deal avec le prix unitaire et le statut promo
+    const data = result.rows.map(row => {
+      const up = parseUnitPrice(row.sale_price, row.unit, row.name);
+      const promoStatus = calcPromoStatus(
+        row.sale_price,
+        row.hist_avg,
+        row.hist_max,
+        row.hist_points
+      );
+      return {
+        ...row,
+        unit_price:   up?.unitPrice  ?? null,
+        unit_label:   up?.unitLabel  ?? null,
+        unit_type:    up?.type       ?? null,
+        promo_status: promoStatus,
+        hist_avg:     row.hist_avg   ?? null,
+      };
     });
+
+    res.json({ success: true, count: data.length, data });
   } catch (err) {
     console.error('[API] /deals error:', err);
     res.status(500).json({ success: false, error: 'Erreur serveur' });
@@ -151,23 +170,27 @@ router.get('/compare', async (req, res) => {
       return res.json({ success: true, query: q, stores: [] });
     }
 
-    // Regroupe les résultats par magasin
-    // Ex: { superc: { store_name: "Super C", best: {...}, others: [...] } }
+    // Ajoute le prix unitaire à chaque row
+    const enriched = result.rows.map(row => {
+      const up = parseUnitPrice(row.sale_price, row.unit, row.name);
+      return { ...row, unit_price: up?.unitPrice ?? null, unit_label: up?.unitLabel ?? null };
+    });
+
     const byStore = {};
-    for (const row of result.rows) {
+    for (const row of enriched) {
       if (!byStore[row.store_id]) {
         byStore[row.store_id] = {
           store_id:   row.store_id,
           store_name: row.store_name,
           color:      row.store_color,
           text_color: row.text_color,
-          best:       null,   // deal le moins cher pour ce magasin
-          others:     [],     // autres deals trouvés dans ce magasin
+          best:       null,
+          others:     [],
         };
       }
       const entry = byStore[row.store_id];
       if (Number(row.rank) === 1) {
-        entry.best = row;     // rank=1 = le moins cher du magasin
+        entry.best = row;
       } else {
         entry.others.push(row);
       }

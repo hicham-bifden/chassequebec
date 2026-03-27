@@ -16,15 +16,19 @@ const storeColors: Record<string, string> = {
 };
 
 const storeHexColors: Record<string, string> = {
-  IGA: '#dc2626',
-  Maxi: '#eab308',
-  Metro: '#14b8a6',
-  'Super C': '#f97316',
-  Costco: '#1d4ed8',
+  IGA: '#dc2626', Maxi: '#eab308', Metro: '#14b8a6', 'Super C': '#f97316', Costco: '#1d4ed8',
 };
 
 const storeIds: Record<string, string> = {
   IGA: 'iga', Maxi: 'maxi', Metro: 'metro', 'Super C': 'superc', Costco: 'costco',
+};
+
+// Badges pour le statut promo
+const PROMO_BADGE: Record<string, { label: string; className: string }> = {
+  true_promo:   { label: '✅ Vraie promo',     className: 'bg-green-100 text-green-700 border border-green-200' },
+  normal_promo: { label: '🟡 Bonne promo',     className: 'bg-yellow-50 text-yellow-700 border border-yellow-200' },
+  fake_promo:   { label: '⚠️ Fausse promo',    className: 'bg-orange-50 text-orange-700 border border-orange-200' },
+  arnaque:      { label: '🚨 Plus cher!',       className: 'bg-red-50 text-red-700 border border-red-200' },
 };
 
 export default function DealCard({ deal }: Props) {
@@ -34,6 +38,8 @@ export default function DealCard({ deal }: Props) {
   const discount = Math.round(
     ((deal.regularPrice - deal.salePrice) / deal.regularPrice) * 100
   );
+
+  const promoBadge = deal.promoStatus ? PROMO_BADGE[deal.promoStatus] : null;
 
   return (
     <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden flex flex-col hover:shadow-md transition-shadow">
@@ -57,12 +63,13 @@ export default function DealCard({ deal }: Props) {
 
       <div className="p-4 flex flex-col flex-1">
         <span className="text-xs text-gray-500 mb-1">{deal.category}</span>
-        <h3 className="font-semibold text-gray-800 text-sm leading-snug mb-2 flex-1">
+        <h3 className="font-semibold text-gray-800 text-sm leading-snug mb-1 flex-1">
           {deal.name}
         </h3>
-        <p className="text-xs text-gray-400 mb-3">{deal.unit}</p>
+        {deal.unit && <p className="text-xs text-gray-400 mb-2">{deal.unit}</p>}
 
-        <div className="flex items-end justify-between mb-3">
+        {/* Prix + rabais */}
+        <div className="flex items-end justify-between mb-1">
           <div>
             <span className="text-2xl font-bold text-red-600">
               {deal.salePrice.toFixed(2)} $
@@ -76,9 +83,27 @@ export default function DealCard({ deal }: Props) {
           </span>
         </div>
 
-        <div className="flex items-center justify-between mb-3">
+        {/* Prix unitaire — la vraie valeur pour comparer */}
+        {deal.unitPrice && (
+          <div className="mb-2 px-2 py-1 bg-blue-50 rounded-lg flex items-center gap-1">
+            <span className="text-xs font-bold text-blue-700">
+              {deal.unitPrice} $
+            </span>
+            <span className="text-xs text-blue-500">{deal.unitLabel}</span>
+          </div>
+        )}
+
+        {/* Badge statut promo (fausse promo, vraie promo, arnaque…) */}
+        {promoBadge && (
+          <div className={`mb-2 px-2 py-0.5 rounded-lg text-xs font-medium ${promoBadge.className}`}>
+            {promoBadge.label}
+          </div>
+        )}
+
+        {/* Date + lien officiel */}
+        <div className="flex items-center justify-between mb-2">
           <p className="text-xs text-gray-400">
-            Valide jusqu'au {new Date(deal.validUntil).toLocaleDateString('fr-CA')}
+            Jusqu'au {new Date(deal.validUntil).toLocaleDateString('fr-CA')}
           </p>
           {deal.productUrl && (
             <a
@@ -93,12 +118,12 @@ export default function DealCard({ deal }: Props) {
           )}
         </div>
 
-        {/* Price history toggle */}
+        {/* Historique de prix */}
         <button
           onClick={() => setShowChart(s => !s)}
           className="w-full py-1.5 mb-2 rounded-lg text-xs font-medium text-gray-500 hover:bg-gray-50 border border-gray-100 transition-colors"
         >
-          {showChart ? '▲ Masquer historique' : '📈 Historique de prix'}
+          {showChart ? '▲ Masquer' : '📈 Historique de prix'}
         </button>
 
         {showChart && (

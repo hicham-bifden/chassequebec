@@ -18,6 +18,11 @@ export interface ApiDeal {
   image_emoji: string;
   image_url: string;
   product_url: string;
+  unit_price: string | null;
+  unit_label: string | null;
+  unit_type: string | null;
+  promo_status: 'true_promo' | 'normal_promo' | 'fake_promo' | 'arnaque' | 'no_data';
+  hist_avg: string | null;
   loyalty_points: number;
   saving_pct: number;
   saving_amount: number;
@@ -28,12 +33,14 @@ export const fetchDeals = async (params?: {
   category?: string;
   sort?: string;
   search?: string;
+  limit?: string;
 }): Promise<ApiDeal[]> => {
   const searchParams = new URLSearchParams();
   if (params?.store)    searchParams.set('store',    params.store);
   if (params?.category) searchParams.set('category', params.category);
   if (params?.sort)     searchParams.set('sort',     params.sort);
   if (params?.search)   searchParams.set('search',   params.search);
+  if (params?.limit)    searchParams.set('limit',    params.limit);
 
   const response = await fetch(`${API_URL}/api/deals?${searchParams}`);
   if (!response.ok) throw new Error('Erreur API');

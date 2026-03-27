@@ -18,6 +18,7 @@ export const useDeals = (filters: DealFilters) => {
         category: filters.categoryId !== 'all' ? filters.categoryId : undefined,
         sort:     filters.sortBy,
         search:   filters.search     || undefined,
+        limit:    filters.limit      ? String(filters.limit) : undefined,
       });
       setDeals(data);
       setFromAPI(true);
@@ -51,7 +52,7 @@ export const useDeals = (filters: DealFilters) => {
     } finally {
       setLoading(false);
     }
-  }, [filters.storeId, filters.categoryId, filters.sortBy, filters.search]);
+  }, [filters.storeId, filters.categoryId, filters.sortBy, filters.search, filters.limit]);
 
   useEffect(() => { load(); }, [load]);
 
