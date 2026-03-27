@@ -16,6 +16,7 @@ export interface ApiDeal {
   unit: string;
   valid_until: string;
   image_emoji: string;
+  image_url: string;
   loyalty_points: number;
   saving_pct: number;
   saving_amount: number;
@@ -61,6 +62,20 @@ export interface CompareResult {
   query: string;
   stores: CompareStore[];
 }
+
+export interface PricePoint {
+  date: string;
+  price: number;
+}
+
+export const fetchHistory = async (name: string, store: string): Promise<PricePoint[]> => {
+  const response = await fetch(
+    `${API_URL}/api/deals/history?name=${encodeURIComponent(name)}&store=${encodeURIComponent(store)}`
+  );
+  if (!response.ok) throw new Error('Erreur API');
+  const data = await response.json();
+  return data.data;
+};
 
 export const fetchCompare = async (q: string): Promise<CompareResult> => {
   const response = await fetch(`${API_URL}/api/deals/compare?q=${encodeURIComponent(q)}`);

@@ -38,7 +38,7 @@ router.get('/', async (req, res) => {
       SELECT
         d.id, d.name, d.brand, d.store_id,
         d.regular_price, d.sale_price, d.unit,
-        d.valid_until, d.image_emoji, d.loyalty_points,
+        d.valid_until, d.image_emoji, d.image_url, d.loyalty_points,
         s.name as store_name, s.color, s.text_color,
         c.id as category_id, c.label as category_label, c.emoji,
         ROUND(((d.regular_price - d.sale_price) / d.regular_price * 100)::numeric, 0) as saving_pct,
@@ -125,7 +125,7 @@ router.get('/compare', async (req, res) => {
         SELECT
           d.id, d.name, d.brand, d.store_id,
           d.regular_price, d.sale_price, d.unit,
-          d.valid_until, d.image_emoji,
+          d.valid_until, d.image_emoji, d.image_url,
           s.name      AS store_name,
           s.color     AS store_color,
           s.text_color,
@@ -182,6 +182,40 @@ router.get('/compare', async (req, res) => {
     res.json({ success: true, query: q, stores });
   } catch (err) {
     console.error('[API] /deals/compare error:', err);
+    res.status(500).json({ success: false, error: 'Erreur serveur' });
+  }
+});
+
+// ----------------------------------------------------------
+// GET /api/deals/history?name=poulet&store=iga
+// Retourne l'historique de prix d'un produit pour un magasin donné.
+// Les entrées sont groupées par jour pour éviter les doublons intra-journée.
+//
+// Exemple: GET /api/deals/history?name=Lait%202%25&store=iga
+// → [{ date: "2026-03-20", price: 3.99 }, { date: "2026-03-27", price: 4.29 }, ...]
+// ----------------------------------------------------------
+router.get('/history', async (req, res) => {
+  try {
+    const { name, store } = req.query;
+    if (!name || !store) {
+      return res.status(400).json({ success: false, error: 'Paramètres name et store requis' });
+    }
+
+    const result = await query(`
+      SELECT
+        DATE(recorded_at) AS date,
+        MIN(price) AS price
+      FROM price_history
+      WHERE LOWER(deal_name) LIKE $1
+        AND store_id = $2
+      GROUP BY DATE(recorded_at)
+      ORDER BY DATE(recorded_at) ASC
+      LIMIT 52
+    `, [`%${name.toLowerCase()}%`, store]);
+
+    res.json({ success: true, data: result.rows });
+  } catch (err) {
+    console.error('[API] /deals/history error:', err);
     res.status(500).json({ success: false, error: 'Erreur serveur' });
   }
 });

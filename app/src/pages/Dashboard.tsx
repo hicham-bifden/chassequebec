@@ -37,6 +37,7 @@ function apiDealToDeal(d: ApiDeal): Deal {
     salePrice: Number(d.sale_price),
     unit: d.unit ?? '',
     validUntil: d.valid_until ?? '',
+    imageUrl: d.image_url || undefined,
   };
 }
 

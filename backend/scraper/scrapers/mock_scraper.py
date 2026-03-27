@@ -63,6 +63,7 @@ class MockScraper(BaseScraper):
                 "unit": unit,
                 "valid_until": valid_until,
                 "image_emoji": emoji,
+                "image_url": "",
                 "loyalty_points": points,
             })
 

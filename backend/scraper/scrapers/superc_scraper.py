@@ -180,6 +180,7 @@ class SuperCScraper(BaseScraper):
             "unit": unit,
             "valid_until": valid_until,
             "image_emoji": EMOJI_MAP.get(category_id, "🛒"),
+            "image_url":   image_url or "",
             "loyalty_points": 0,
         }
 
@@ -232,6 +233,7 @@ class SuperCScraper(BaseScraper):
                 "regular_price": reg, "sale_price": sale, "unit": unit,
                 "valid_until": valid_until,
                 "image_emoji": EMOJI_MAP.get(cat, "🛒"),
+                "image_url": "",
                 "loyalty_points": 0,
             }
             for name, reg, sale, unit, cat in products

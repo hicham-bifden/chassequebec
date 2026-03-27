@@ -39,6 +39,7 @@ export const useDeals = (filters: DealFilters) => {
         unit: d.unit,
         valid_until: d.validUntil,
         image_emoji: '',
+        image_url: '',
         loyalty_points: 0,
         saving_pct: Math.round(((d.regularPrice - d.salePrice) / d.regularPrice) * 100),
         saving_amount: Math.round((d.regularPrice - d.salePrice) * 100) / 100,

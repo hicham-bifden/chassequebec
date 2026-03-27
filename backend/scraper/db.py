@@ -26,10 +26,10 @@ def save_deals(deals: list[dict]) -> int:
             cur.execute("""
                 INSERT INTO deals (name, brand, store_id, category_id,
                     regular_price, sale_price, unit, valid_until,
-                    image_emoji, loyalty_points)
+                    image_emoji, image_url, loyalty_points)
                 VALUES (%(name)s, %(brand)s, %(store_id)s, %(category_id)s,
                     %(regular_price)s, %(sale_price)s, %(unit)s, %(valid_until)s,
-                    %(image_emoji)s, %(loyalty_points)s)
+                    %(image_emoji)s, %(image_url)s, %(loyalty_points)s)
             """, deal)
 
             # Historique des prix
