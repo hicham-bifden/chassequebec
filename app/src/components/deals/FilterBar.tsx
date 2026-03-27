@@ -6,6 +6,7 @@ const CATEGORIES: Category[] = [
   'Viandes',
   'Produits laitiers',
   'Épicerie',
+  'Hygiène',
   'Surgelés',
   'Boulangerie',
   'Boissons',

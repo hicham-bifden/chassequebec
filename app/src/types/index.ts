@@ -5,6 +5,7 @@ export type Category =
   | 'Viandes'
   | 'Produits laitiers'
   | 'Épicerie'
+  | 'Hygiène'
   | 'Surgelés'
   | 'Boulangerie'
   | 'Boissons';

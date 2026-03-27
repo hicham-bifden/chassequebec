@@ -20,6 +20,7 @@ const CATEGORY_TO_ID: Record<string, string> = {
   'Surgelés': 'surgeles',
   'Boulangerie': 'boulangerie',
   'Boissons': 'boissons',
+  'Hygiène': 'hygiene',
 };
 
 // Maps API sort key → useDeals sort key
@@ -103,7 +104,8 @@ export default function Dashboard() {
         onSearchChange={s => { setSearch(s); setLimit(PAGE_SIZE); }}
       />
 
-      {loading ? (
+      {/* Skeleton uniquement au chargement initial (aucun deal affiché) */}
+      {loading && deals.length === 0 ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
           {Array.from({ length: 8 }).map((_, i) => (
             <div key={i} className="bg-white rounded-xl shadow-sm border border-gray-100 h-56 animate-pulse">
@@ -117,7 +119,7 @@ export default function Dashboard() {
             </div>
           ))}
         </div>
-      ) : deals.length === 0 ? (
+      ) : !loading && deals.length === 0 ? (
         <div className="text-center py-16 text-gray-400">
           <p className="text-lg">Aucune offre trouvée</p>
           <p className="text-sm mt-2">Essayez d'autres filtres</p>
@@ -130,14 +132,15 @@ export default function Dashboard() {
             ))}
           </div>
 
-          {/* Bouton "Charger plus" si on a atteint la limite */}
+          {/* Bouton "Charger plus" — reste à la même position de scroll */}
           {deals.length >= limit && (
             <div className="mt-8 text-center">
               <button
                 onClick={() => setLimit(l => l + PAGE_SIZE)}
-                className="px-8 py-3 bg-white border border-gray-200 rounded-xl text-sm font-semibold text-gray-600 hover:bg-gray-50 hover:border-gray-300 shadow-sm transition-all"
+                disabled={loading}
+                className="px-8 py-3 bg-white border border-gray-200 rounded-xl text-sm font-semibold text-gray-600 hover:bg-gray-50 hover:border-gray-300 shadow-sm transition-all disabled:opacity-50"
               >
-                Charger {PAGE_SIZE} produits de plus
+                {loading ? 'Chargement…' : `Charger ${PAGE_SIZE} produits de plus`}
               </button>
             </div>
           )}
