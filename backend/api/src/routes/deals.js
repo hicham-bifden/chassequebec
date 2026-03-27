@@ -291,4 +291,102 @@ router.get('/stores', async (req, res) => {
   }
 });
 
+// ----------------------------------------------------------
+// GET /api/deals/liquidation
+// Retourne les deals scorés 0-100 pour la page Liquidations.
+//
+// Score = composante prix (50pts) + mots-clés (30pts) + stock limité (20pts)
+// Minimum pour apparaître : 20 pts. Trié par score DESC.
+//
+// Tiers:
+//   🔴 Rouge  80-100 : vraie liquidation (prix + mot-clé + stock)
+//   🟠 Orange 50-79  : bon deal avec historique ou mot-clé
+//   🟢 Verte  20-49  : réduction standard ≥ 30% sur le prix régulier
+// ----------------------------------------------------------
+router.get('/liquidation', async (req, res) => {
+  try {
+    const result = await query(`
+      WITH scored AS (
+        SELECT
+          d.id, d.name, d.brand, d.store_id,
+          d.regular_price, d.sale_price, d.unit,
+          d.valid_until, d.image_emoji, d.image_url, d.product_url,
+          s.name        AS store_name,
+          s.color, s.text_color,
+          c.id          AS category_id,
+          c.label       AS category_label,
+          c.emoji,
+          ROUND(((d.regular_price - d.sale_price) / d.regular_price * 100)::numeric, 0) AS saving_pct,
+          (d.regular_price - d.sale_price) AS saving_amount,
+          ph.avg_price   AS hist_avg,
+          ph.data_points AS hist_points,
+
+          -- Composante prix (50 pts max)
+          -- Si historique dispo : % de réduction vs prix moyen historique
+          -- Sinon : % de réduction vs prix régulier affiché
+          CASE
+            WHEN ph.avg_price IS NOT NULL AND ph.data_points >= 2
+              THEN LEAST(50, GREATEST(0,
+                     ROUND(((ph.avg_price - d.sale_price) / ph.avg_price * 50)::numeric, 1)
+                   ))
+            ELSE LEAST(50, GREATEST(0,
+                   ROUND(((d.regular_price - d.sale_price) / d.regular_price * 50)::numeric, 1)
+                 ))
+          END AS price_score,
+
+          -- Composante mots-clés liquidation (30 pts)
+          CASE
+            WHEN LOWER(d.name) ~* 'liquidat|clearance|fin de s[eé]rie|d[eé]marque|solde final'
+              THEN 30 ELSE 0
+          END AS keyword_score,
+
+          -- Composante stock limité (20 pts)
+          CASE
+            WHEN LOWER(d.name || ' ' || COALESCE(d.unit, ''))
+                 ~* 'stock limit|quantit[eé] limit|jusqu''[aà] [eé]puisement|dernier stock'
+              THEN 20 ELSE 0
+          END AS stock_score
+
+        FROM deals d
+        JOIN stores s ON d.store_id = s.id
+        JOIN categories c ON d.category_id = c.id
+        LEFT JOIN (
+          SELECT deal_name, store_id,
+                 ROUND(AVG(price)::numeric, 2)            AS avg_price,
+                 COUNT(DISTINCT DATE(recorded_at))        AS data_points
+          FROM price_history
+          WHERE recorded_at >= NOW() - INTERVAL '28 days'
+          GROUP BY deal_name, store_id
+        ) ph ON LOWER(d.name) = LOWER(ph.deal_name) AND d.store_id = ph.store_id
+        WHERE d.is_active = TRUE
+      )
+      SELECT *,
+             ROUND((price_score + keyword_score + stock_score)::numeric, 1) AS score
+      FROM scored
+      WHERE (price_score + keyword_score + stock_score) >= 20
+      ORDER BY score DESC
+      LIMIT 500
+    `);
+
+    const data = result.rows.map(row => {
+      const up = parseUnitPrice(row.sale_price, row.unit, row.name);
+      return {
+        ...row,
+        unit_price:  up?.unitPrice ?? null,
+        unit_label:  up?.unitLabel ?? null,
+        unit_type:   up?.type      ?? null,
+        score:       Number(row.score),
+        price_score:   Number(row.price_score),
+        keyword_score: Number(row.keyword_score),
+        stock_score:   Number(row.stock_score),
+      };
+    });
+
+    res.json({ success: true, count: data.length, data });
+  } catch (err) {
+    console.error('[API] /deals/liquidation error:', err);
+    res.status(500).json({ success: false, error: 'Erreur serveur' });
+  }
+});
+
 export default router;

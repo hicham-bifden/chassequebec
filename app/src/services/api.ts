@@ -90,3 +90,20 @@ export const fetchCompare = async (q: string): Promise<CompareResult> => {
   if (!response.ok) throw new Error('Erreur API');
   return response.json();
 };
+
+// --- Types pour la page Liquidation ---
+
+export interface LiquidationDeal extends ApiDeal {
+  score:         number;
+  price_score:   number;
+  keyword_score: number;
+  stock_score:   number;
+  hist_points:   number | null;
+}
+
+export const fetchLiquidation = async (): Promise<LiquidationDeal[]> => {
+  const response = await fetch(`${API_URL}/api/deals/liquidation`);
+  if (!response.ok) throw new Error('Erreur API liquidation');
+  const data = await response.json();
+  return data.data;
+};

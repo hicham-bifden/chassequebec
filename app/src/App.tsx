@@ -4,6 +4,7 @@ import Navbar from './components/layout/Navbar';
 import Dashboard from './pages/Dashboard';
 import MyList from './pages/MyList';
 import ComparePage from './pages/ComparePage';
+import LiquidationPage from './pages/LiquidationPage';
 
 function App() {
   return (
@@ -16,6 +17,7 @@ function App() {
               <Route path="/" element={<Dashboard />} />
               <Route path="/ma-liste" element={<MyList />} />
               <Route path="/comparer" element={<ComparePage />} />
+              <Route path="/liquidation" element={<LiquidationPage />} />
             </Routes>
           </main>
         </div>
