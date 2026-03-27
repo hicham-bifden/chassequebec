@@ -123,9 +123,7 @@ class MaxiScraper(BaseScraper):
         if regular_price is None or regular_price <= sale_price:
             regular_price = round(sale_price * 1.25, 2)
 
-        unit = (p.get("description") or "").replace("\n", " ").strip()
-        if len(unit) > 80:
-            unit = unit[:80].rsplit(" ", 1)[0]
+        unit = self.clean_unit(p.get("description") or "")
 
         cats = p.get("item_categories") or []
         cat_name = cats[0].get("name", "") if isinstance(cats, list) and cats else ""

@@ -155,10 +155,7 @@ class SuperCScraper(BaseScraper):
             regular_price = round(sale_price * 1.25, 2)
 
         # Description du format (ex: "375 g", "kg", "sac 10 lb")
-        unit = (p.get("bodyFr") or p.get("bodyEn") or "").strip()
-        # Tronquer les descriptions trop longues
-        if len(unit) > 60:
-            unit = unit[:60].rsplit(",", 1)[0].strip()
+        unit = self.clean_unit(p.get("bodyFr") or p.get("bodyEn") or "")
 
         # Catégorie : priorité à la détection par nom pour les cas spécifiques
         cat_fr = p.get("mainCategoryFr") or p.get("mainCategoryEn") or ""

@@ -125,9 +125,7 @@ class IGAScraper(BaseScraper):
             regular_price = round(sale_price * 1.25, 2)
 
         # Description du format (ex: "325 g", "kg", "2 x 500 g")
-        unit = (p.get("description") or "").replace("\n", " ").strip()
-        if len(unit) > 80:
-            unit = unit[:80].rsplit(" ", 1)[0]
+        unit = self.clean_unit(p.get("description") or "")
 
         # Catégorie : la détection par nom est prioritaire pour les cas spécifiques
         # (évite les erreurs de classification de l'API Flipp)

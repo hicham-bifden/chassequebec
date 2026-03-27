@@ -148,9 +148,7 @@ class MetroScraper(BaseScraper):
         if regular_price is None or regular_price <= sale_price:
             regular_price = round(sale_price * 1.25, 2)
 
-        unit = (p.get("bodyFr") or p.get("bodyEn") or "").strip()
-        if len(unit) > 80:
-            unit = unit[:80].rsplit(",", 1)[0].strip()
+        unit = self.clean_unit(p.get("bodyFr") or p.get("bodyEn") or "")
 
         cat_fr      = p.get("mainCategoryFr") or p.get("mainCategoryEn") or ""
         cat_by_name = self.detect_category(name)

@@ -91,6 +91,28 @@ class BaseScraper(ABC):
 
         return "epicerie"
 
+    def clean_unit(self, raw: str) -> str:
+        """Nettoie le champ 'unit' (description format) provenant des APIs.
+
+        Retire les mentions de prix réguliers (ex: 'Rég. 29,99$ à 38,99$'),
+        les virgules de fin, et tronque à 80 caractères max.
+        """
+        import re
+        text = (raw or "").replace("\n", " ").strip()
+        # Retire 'Rég. X$ à Y$' ou 'Reg. X$' — déjà affiché séparément
+        text = re.sub(r"[Rr]ég?\.?\s*\d+[,.]?\d*\s*\$?\s*(à|a|-|–)?\s*\d*[,.]?\d*\s*\$?", "", text)
+        # Retire les prix isolés restants comme '29,99 $' ou '29.99$'
+        text = re.sub(r"\d+[.,]\d{2}\s*\$", "", text)
+        # Retire 'Sélection variée' (redondant pour l'affichage)
+        text = re.sub(r"[Ss]élection\s+vari[eé]e\.?", "", text, flags=re.IGNORECASE)
+        # Retire les mots de liaison orphelins en fin de chaîne (ex: "50 à 104 à")
+        text = re.sub(r"\s+(à|a|ou|and|or|–|-)\s*$", "", text, flags=re.IGNORECASE)
+        # Nettoyage final : espaces multiples, virgules/points en début/fin
+        text = re.sub(r"\s{2,}", " ", text).strip(" ,.-–")
+        if len(text) > 80:
+            text = text[:80].rsplit(" ", 1)[0].strip(" ,")
+        return text
+
     @abstractmethod
     def scrape(self) -> list[dict]:
         """Scrape les deals. À implémenter dans chaque sous-classe."""
