@@ -71,9 +71,16 @@ export default function DealCard({ deal }: Props) {
         {/* Prix + rabais */}
         <div className="flex items-end justify-between mb-1">
           <div>
-            <span className="text-2xl font-bold text-red-600">
-              {deal.salePrice.toFixed(2)} $
-            </span>
+            <div className="flex items-baseline gap-2 flex-wrap">
+              <span className="text-2xl font-bold text-red-600">
+                {deal.salePrice.toFixed(2)} $
+              </span>
+              {deal.unitPrice && (
+                <span className="text-sm font-semibold text-blue-600">
+                  — {deal.unitPrice} ${deal.unitLabel}
+                </span>
+              )}
+            </div>
             <span className="block text-xs text-gray-400 line-through">
               {deal.regularPrice.toFixed(2)} $
             </span>
@@ -82,16 +89,6 @@ export default function DealCard({ deal }: Props) {
             -{discount}%
           </span>
         </div>
-
-        {/* Prix unitaire — la vraie valeur pour comparer */}
-        {deal.unitPrice && (
-          <div className="mb-2 px-2 py-1 bg-blue-50 rounded-lg flex items-center gap-1">
-            <span className="text-xs font-bold text-blue-700">
-              {deal.unitPrice} $
-            </span>
-            <span className="text-xs text-blue-500">{deal.unitLabel}</span>
-          </div>
-        )}
 
         {/* Badge statut promo (fausse promo, vraie promo, arnaque…) */}
         {promoBadge && (

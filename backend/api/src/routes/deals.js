@@ -91,15 +91,21 @@ router.get('/', async (req, res) => {
 
     // Enrichir chaque deal avec le prix unitaire et le statut promo
     const data = result.rows.map(row => {
-      const up = parseUnitPrice(row.sale_price, row.unit, row.name);
+      const up = parseUnitPrice(row.sale_price, row.unit, row.name, row.category_id);
       const promoStatus = calcPromoStatus(
         row.sale_price,
         row.hist_avg,
         row.hist_max,
         row.hist_points
       );
+      // Change 7: generate Super C search link if product_url is empty
+      let productUrl = row.product_url;
+      if (row.store_id === 'superc' && !productUrl) {
+        productUrl = 'https://www.superc.ca/recherche?query=' + encodeURIComponent(row.name);
+      }
       return {
         ...row,
+        product_url:  productUrl,
         unit_price:   up?.unitPrice  ?? null,
         unit_label:   up?.unitLabel  ?? null,
         unit_type:    up?.type       ?? null,
@@ -128,6 +134,15 @@ router.get('/', async (req, res) => {
 //   Metro: Lait Natrel 4L à 5.99$
 //   Maxi: Lait Natrel 2L à 4.29$
 // ----------------------------------------------------------
+// Exclusions pour la comparaison: évite les faux positifs par produit
+const COMPARE_EXCLUSIONS = {
+  'lait':    ["lait de coco", "lait d'amande", "lait de soja", "lait d'avoine", "boisson végétale"],
+  'banane':  ['pain', 'mélange pour', 'recette'],
+  'beurre':  ["beurre d'arachide", 'beurre de pomme', 'beurre de noix'],
+  'thon':    ['salade', 'thonidé'],
+  'poulet':  ['saveur poulet', 'arôme poulet'],
+};
+
 router.get('/compare', async (req, res) => {
   try {
     const { q } = req.query;
@@ -135,9 +150,21 @@ router.get('/compare', async (req, res) => {
       return res.status(400).json({ success: false, error: 'Paramètre q requis (min 2 caractères)' });
     }
 
-    const search = `%${q.toLowerCase()}%`;
+    const searchTerm = q.toLowerCase().trim();
+
+    // Build exclusion conditions
+    const exclusions = COMPARE_EXCLUSIONS[searchTerm] || [];
+    let exclusionSQL = '';
+    const params = [searchTerm];
+    let paramCount = 2;
+    for (const excl of exclusions) {
+      exclusionSQL += ` AND LOWER(d.name) NOT LIKE $${paramCount}`;
+      params.push(`%${excl.toLowerCase()}%`);
+      paramCount++;
+    }
 
     // Cherche tous les deals qui contiennent le mot-clé dans n'importe quel magasin
+    // Utilise un regex avec word-boundary pour éviter les faux positifs
     // ON PREND LES 3 MEILLEURS PAR MAGASIN (PARTITION BY store_id)
     const result = await query(`
       WITH ranked AS (
@@ -159,12 +186,13 @@ router.get('/compare', async (req, res) => {
         JOIN stores s ON d.store_id = s.id
         JOIN categories c ON d.category_id = c.id
         WHERE d.is_active = TRUE
-          AND LOWER(d.name) LIKE $1
+          AND LOWER(d.name) ~ ('(^|[\\s,\\-])' || $1 || '([\\s,\\-]|$|s )')
+          ${exclusionSQL}
       )
       SELECT * FROM ranked
       WHERE rank <= 3
       ORDER BY store_id, rank
-    `, [search]);
+    `, params);
 
     if (result.rows.length === 0) {
       return res.json({ success: true, query: q, stores: [] });
@@ -172,8 +200,13 @@ router.get('/compare', async (req, res) => {
 
     // Ajoute le prix unitaire à chaque row
     const enriched = result.rows.map(row => {
-      const up = parseUnitPrice(row.sale_price, row.unit, row.name);
-      return { ...row, unit_price: up?.unitPrice ?? null, unit_label: up?.unitLabel ?? null };
+      const up = parseUnitPrice(row.sale_price, row.unit, row.name, row.category_id);
+      // Generate Super C search link if needed
+      let productUrl = row.product_url;
+      if (row.store_id === 'superc' && !productUrl) {
+        productUrl = 'https://www.superc.ca/recherche?query=' + encodeURIComponent(row.name);
+      }
+      return { ...row, product_url: productUrl, unit_price: up?.unitPrice ?? null, unit_label: up?.unitLabel ?? null };
     });
 
     const byStore = {};
@@ -197,10 +230,19 @@ router.get('/compare', async (req, res) => {
     }
 
     // Trie les magasins par prix croissant (le moins cher en premier)
-    // On filtre les magasins sans best (ne devrait pas arriver, mais sécurité)
-    const stores = Object.values(byStore)
-      .filter(s => s.best !== null)
-      .sort((a, b) => Number(a.best.sale_price) - Number(b.best.sale_price));
+    // Si la majorité des résultats ont un prix unitaire, trier par unit_price ASC
+    const storeList = Object.values(byStore).filter(s => s.best !== null);
+    const withUnitPrice = storeList.filter(s => s.best.unit_price !== null).length;
+    const useUnitPriceSort = withUnitPrice > storeList.length / 2;
+
+    const stores = storeList.sort((a, b) => {
+      if (useUnitPriceSort) {
+        const ua = Number(a.best.unit_price);
+        const ub = Number(b.best.unit_price);
+        if (ua && ub) return ua - ub;
+      }
+      return Number(a.best.sale_price) - Number(b.best.sale_price);
+    });
 
     res.json({ success: true, query: q, stores });
   } catch (err) {
@@ -369,7 +411,7 @@ router.get('/liquidation', async (req, res) => {
     `);
 
     const data = result.rows.map(row => {
-      const up = parseUnitPrice(row.sale_price, row.unit, row.name);
+      const up = parseUnitPrice(row.sale_price, row.unit, row.name, row.category_id);
       return {
         ...row,
         unit_price:  up?.unitPrice ?? null,

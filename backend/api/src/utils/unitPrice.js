@@ -28,7 +28,7 @@ function firstNumber(str) {
  * Calcule le prix unitaire à partir du prix de vente, du champ `unit` et du nom.
  * Retourne { unitPrice: string, unitLabel: string } ou null si non parseable.
  */
-export function parseUnitPrice(salePrice, unitStr = '', name = '') {
+export function parseUnitPrice(salePrice, unitStr = '', name = '', categoryId = '') {
   const price = Number(salePrice);
   if (!price || price <= 0) return null;
 
@@ -115,13 +115,26 @@ export function parseUnitPrice(salePrice, unitStr = '', name = '') {
   const gM   = raw.match(/(\d+(?:[.,]\d+)?)\s*g\b/i); // raw pour préserver la casse "g"
   const lbsM = text.match(/(\d+(?:[.,]\d+)?)\s*lbs?\b/);
 
+  const isFruitsLegumes = categoryId === 'fruits-legumes';
+
   if (kgM) {
     const kg = parseFloat(kgM[1].replace(',', '.'));
-    if (kg > 0 && kg <= 50) return { unitPrice: (price / kg).toFixed(2), unitLabel: '/ kg' };
+    if (kg > 0 && kg <= 50) {
+      if (isFruitsLegumes) {
+        // Fruits & légumes: afficher en $/lb (1 lb = 453.592g = 0.453592 kg)
+        return { unitPrice: (price / kg * 0.453592).toFixed(2), unitLabel: '/ lb' };
+      }
+      return { unitPrice: (price / kg).toFixed(2), unitLabel: '/ kg' };
+    }
   }
   if (gM) {
     const g = parseFloat(gM[1].replace(',', '.'));
     if (g >= 10 && g <= 50000) {
+      if (isFruitsLegumes) {
+        // Fruits & légumes: afficher en $/lb
+        const gPerLb = 453.592;
+        return { unitPrice: (price / g * gPerLb).toFixed(2), unitLabel: '/ lb' };
+      }
       if (g >= 1000) return { unitPrice: (price / g * 1000).toFixed(2), unitLabel: '/ kg' };
       return { unitPrice: (price / g * 100).toFixed(2), unitLabel: '/ 100g' };
     }

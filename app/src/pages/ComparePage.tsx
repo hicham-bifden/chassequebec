@@ -205,6 +205,19 @@ function StoreCard({ store, isCheapest, rank, inCart, onAddToCart }: StoreCardPr
         )}
       </div>
 
+      {/* Product image */}
+      {best.image_url && (
+        <div className="h-28 bg-gray-50 flex items-center justify-center overflow-hidden">
+          <img
+            src={best.image_url}
+            alt={best.name}
+            className="h-full w-full object-contain p-2"
+            loading="lazy"
+            onError={e => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }}
+          />
+        </div>
+      )}
+
       <div className="p-4 flex flex-col flex-1">
         {/* Nom du produit */}
         <p className="text-xs text-gray-400 mb-1">{best.category_label}</p>
